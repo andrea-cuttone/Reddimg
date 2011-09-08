@@ -42,28 +42,36 @@ public class ImageCache {
 		brokenImg = Bitmap.createBitmap( 100, 100, Bitmap.Config.ARGB_8888);
 	}
 
-	public Bitmap getImage(String url) {		
-		Bitmap result = getFromMem(url);
-
-		if (result == null) {			
-			result = getFromDisk(url);
-		}
-
-		if (result == null) {
-			result = getFromWeb(url);
-		}
-
-		if(result == null) {
-			result = brokenImg;
-			Log.w(TstActivity.APP_NAME, url + " could not be dl from web");
+	public Bitmap getImage(String url) {
+		if(url.length() == 0) {
+			return brokenImg;
 		}
 		
-		return result;
+		Bitmap result = getFromMem(url);
+
+		if (result != null) {			
+			Log.d(TstActivity.APP_NAME, url + " found in mem cache");
+			return result;
+		}
+
+		result = getFromDisk(url);
+		if (result != null) {
+			Log.d(TstActivity.APP_NAME, url + " found on disk cache");
+			return result;
+		}
+		
+		result = getFromWeb(url);
+		if(result != null) {
+			Log.d(TstActivity.APP_NAME, url + " dl from web");
+			return result;
+		}
+		
+		Log.w(TstActivity.APP_NAME, url + " could not be dl from web");		
+		return brokenImg;
 	}
 
 	private Bitmap getFromMem(String url) {
 		if (inMemCache.containsKey(url)) {
-			Log.d(TstActivity.APP_NAME, url + " found in mem cache");
 			// bump the image in the cache
 			Bitmap bitmap = inMemCache.get(url);
 			inMemCache.remove(url);
@@ -78,7 +86,6 @@ public class ImageCache {
 		Bitmap result = null;
 		File img = new File(reddimgDir, urlToFilename(url));
 		if (img.exists()) {
-			Log.d(TstActivity.APP_NAME, url + " found on disk cache");
 			try {
 				FileInputStream is = new FileInputStream(img);
 				result = BitmapFactory.decodeStream(is, null, null);
@@ -102,7 +109,7 @@ public class ImageCache {
 			Entry<String, Bitmap> entry = iterator.next();
 			entry.getValue().recycle();
 			iterator.remove();
-			Log.d(TstActivity.APP_NAME, url + " removed from mem cache");
+			Log.d(TstActivity.APP_NAME, entry.getKey() + " removed from mem cache");
 		}
 		Bitmap resizedImg = imgResizer.resize(bitmap);
 		inMemCache.put(url, resizedImg);
@@ -110,7 +117,6 @@ public class ImageCache {
 
 	private Bitmap getFromWeb(String url) {
 		try {
-			Log.d(TstActivity.APP_NAME, url + " dl from web");
 			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setConnectTimeout(10000);
 			if (connection.getContentLength() < MAX_IMAGE_SIZE) {
@@ -124,14 +130,15 @@ public class ImageCache {
 				}
 				out.close();
 				is.close();
+				return getFromDisk(url);
 			}
 		} catch (MalformedURLException e) {
 			Log.e(TstActivity.APP_NAME, e.toString());
 		} catch (IOException e) {
 			Log.e(TstActivity.APP_NAME, e.toString());
 		}
-
-		return getFromDisk(url);
+		
+		return null;
 	}
 	
 	private static String urlToFilename(String url) {

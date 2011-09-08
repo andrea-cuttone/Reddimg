@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -37,6 +36,7 @@ public class TstActivity extends Activity {
 		private float startX;
 		private float currentX;
 		private ImageCache imageCache;
+		private Paint textPaint;
 
 		public MyView(Context context) {
 			super(context);
@@ -50,6 +50,9 @@ public class TstActivity extends Activity {
 			imageCache = new ImageCache(imgResizer);
 			
 			setOnTouchListener(this);
+			
+			textPaint = new Paint();
+			textPaint.setColor(Color.RED);
 		}
 
 		public boolean onTouch(View v, MotionEvent event) {
@@ -62,19 +65,14 @@ public class TstActivity extends Activity {
 			}
 			if (event.getAction() == MotionEvent.ACTION_UP) {
 				float endX = event.getX();
-				if (endX < startX) {
+				if (endX <= startX) {
 					currentImgIndex++;
-				} else {
+				} else if(currentImgIndex > 0){
 					currentImgIndex--;
 				}
 				currentX = startX;
 				postInvalidate();
 			}
-			
-//			if (event.getAction() == MotionEvent.ACTION_UP) {
-//				currentImgIndex++;
-//				postInvalidate();
-//			}
 			
 			return true;
 		}
@@ -83,12 +81,10 @@ public class TstActivity extends Activity {
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
 			Log.d(APP_NAME, "Displaying " + currentImgIndex);
-			// Rect clipBounds = canvas.getClipBounds();
 			RedditLink center = linksQueue.at(currentImgIndex);
 			Bitmap centerImg = imageCache.getImage(center.getUrl());
-			Paint textPaint = new Paint();
-			textPaint.setColor(Color.RED);
-			int titleHeight = 50;
+			
+			int titleHeight = 10;
 			float delta = currentX - startX;
 			if (delta < 0) {
 				RedditLink right = linksQueue.at(currentImgIndex + 1);
