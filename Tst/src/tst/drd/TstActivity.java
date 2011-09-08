@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,12 +41,19 @@ public class TstActivity extends Activity {
 		public MyView(Context context) {
 			super(context);
 			linksQueue = new RedditLinkQueue();
-			imageCache = new ImageCache();
+			
+			DisplayMetrics displaymetrics = new DisplayMetrics();
+			WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+			wm.getDefaultDisplay().getMetrics(displaymetrics);
+			ImageResizer imgResizer = new ImageResizer(displaymetrics.widthPixels, displaymetrics.heightPixels);
+			
+			imageCache = new ImageCache(imgResizer);
+			
 			setOnTouchListener(this);
 		}
 
 		public boolean onTouch(View v, MotionEvent event) {
-			/*if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			if (event.getAction() == MotionEvent.ACTION_DOWN) {
 				startX = event.getX();
 			}
 			if (event.getAction() == MotionEvent.ACTION_MOVE) {
@@ -61,12 +69,12 @@ public class TstActivity extends Activity {
 				}
 				currentX = startX;
 				postInvalidate();
-			}*/
-			
-			if (event.getAction() == MotionEvent.ACTION_UP) {
-				currentImgIndex++;
-				postInvalidate();
 			}
+			
+//			if (event.getAction() == MotionEvent.ACTION_UP) {
+//				currentImgIndex++;
+//				postInvalidate();
+//			}
 			
 			return true;
 		}

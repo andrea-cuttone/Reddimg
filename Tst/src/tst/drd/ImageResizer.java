@@ -1,22 +1,33 @@
 package tst.drd;
 
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.DisplayMetrics;
-import android.view.WindowManager;
+
+enum ResizeMode { FIT_ALL, FIT_WIDTH };
 
 public class ImageResizer {
 
-	private DisplayMetrics displaymetrics;
+	private double screenW;
+	private double screenH;
+	private ResizeMode resizeMode;	
 
-	public ImageResizer(Context context) {
-		displaymetrics = new DisplayMetrics();
-		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-		wm.getDefaultDisplay().getMetrics(displaymetrics);
+	public ImageResizer(int w, int h) {
+		this.screenW = w;
+		this.screenH = h;
+		this.resizeMode = ResizeMode.FIT_WIDTH;
 	}
 	
 	public Bitmap resize(Bitmap src) {
-		return Bitmap.createScaledBitmap(src, displaymetrics.widthPixels, displaymetrics.heightPixels, false);
+		
+		double targetW, targetH;
+		if(resizeMode == ResizeMode.FIT_WIDTH || 
+		   src.getWidth() / screenW > src.getHeight() / screenH) {
+			targetW = screenW;
+			targetH = src.getHeight() * (screenW / src.getWidth()); 
+		} else {
+			targetH = screenH;
+			targetW = src.getWidth() * (screenH / src.getHeight());
+		}
+		return Bitmap.createScaledBitmap(src, (int) targetW, (int) targetH, false);
 	}
 	
 }

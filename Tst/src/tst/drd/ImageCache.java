@@ -28,8 +28,11 @@ public class ImageCache {
 	private File reddimgDir;
 	private LinkedHashMap<String, Bitmap> inMemCache;
 	private Bitmap brokenImg;
+	private ImageResizer imgResizer;
 
-	public ImageCache() {
+	public ImageCache(ImageResizer imgResizer) {
+		this.imgResizer = imgResizer;
+		
 		File sdCard = Environment.getExternalStorageDirectory();
 		reddimgDir = new File(sdCard.getAbsolutePath() + "/Reddimg");
 		if(reddimgDir.exists() == false) {
@@ -61,7 +64,11 @@ public class ImageCache {
 	private Bitmap getFromMem(String url) {
 		if (inMemCache.containsKey(url)) {
 			Log.d(TstActivity.APP_NAME, url + " found in mem cache");
-			return inMemCache.get(url);
+			// bump the image in the cache
+			Bitmap bitmap = inMemCache.get(url);
+			inMemCache.remove(url);
+			inMemCache.put(url, bitmap);
+			return bitmap;
 		} else {
 			return null;
 		}
@@ -84,8 +91,9 @@ public class ImageCache {
 		}
 		if (result != null) {
 			storeInMem(url, result);
+			result.recycle();
 		}
-		return result;
+		return getFromMem(url);
 	}
 
 	private void storeInMem(String url, Bitmap bitmap) {
@@ -96,7 +104,8 @@ public class ImageCache {
 			iterator.remove();
 			Log.d(TstActivity.APP_NAME, url + " removed from mem cache");
 		}
-		inMemCache.put(url, bitmap);
+		Bitmap resizedImg = imgResizer.resize(bitmap);
+		inMemCache.put(url, resizedImg);
 	}
 
 	private Bitmap getFromWeb(String url) {
@@ -126,7 +135,7 @@ public class ImageCache {
 	}
 	
 	private static String urlToFilename(String url) {
-		return url.replaceAll("\\W+", "_");
+		return url.replaceAll("[\\W&&[^\\.]]+", "_");
 	}
 
 }
