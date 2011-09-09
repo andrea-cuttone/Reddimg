@@ -15,6 +15,8 @@ import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 
+enum ScrollingState { NO_SCROLL, SCROLL_X, SCROLL_Y };
+
 public class TstActivity extends Activity {
 	
 	public static final String APP_NAME = "REDDIMG";
@@ -30,11 +32,19 @@ public class TstActivity extends Activity {
 	}
 
 	public class MyView extends View implements OnTouchListener {
+		private static final int MIN_DELTAX = 20;
+		private static final float MIN_DELTAY = 20;
 		private int currentImgIndex = 0;
 		private RedditLinkQueue linksQueue;
 
 		private float startX;
 		private float currentX;
+		private float startY;
+		private float currentY;
+		private float yPos;		
+
+		private ScrollingState scrollingState;
+
 		private ImageCache imageCache;
 		private Paint textPaint;
 
@@ -53,25 +63,57 @@ public class TstActivity extends Activity {
 			
 			textPaint = new Paint();
 			textPaint.setColor(Color.RED);
+			
+			scrollingState = ScrollingState.NO_SCROLL;
+			
+			yPos = 0;
 		}
 
 		public boolean onTouch(View v, MotionEvent event) {
 			if (event.getAction() == MotionEvent.ACTION_DOWN) {
 				startX = event.getX();
+				startY = event.getY();
+				currentX = startX;
+				currentY = startY;
+				postInvalidate();
+				return true;
 			}
+			
 			if (event.getAction() == MotionEvent.ACTION_MOVE) {
 				currentX = event.getX();
+				currentY = event.getY();
+				if (scrollingState == ScrollingState.NO_SCROLL) {
+					if (Math.abs(currentX - startX) > MIN_DELTAX) {
+						scrollingState = ScrollingState.SCROLL_X;
+					} else if (Math.abs(currentY - startY) > MIN_DELTAY) {
+						scrollingState = ScrollingState.SCROLL_Y;
+					}
+				} 
+				
 				postInvalidate();
+				return true;
 			}
+			
 			if (event.getAction() == MotionEvent.ACTION_UP) {
-				float endX = event.getX();
-				if (endX <= startX) {
-					currentImgIndex++;
-				} else if(currentImgIndex > 0){
-					currentImgIndex--;
+				if (scrollingState == ScrollingState.SCROLL_X) {
+					float deltaX = event.getX() - startX;
+					if (deltaX < -MIN_DELTAX) {
+						currentImgIndex++;
+						yPos = 0;
+						postInvalidate();
+					} else if (deltaX > MIN_DELTAX && currentImgIndex > 0) {
+						currentImgIndex--;
+						yPos = 0;
+					}
+				} else if(scrollingState == ScrollingState.SCROLL_Y) {
+					yPos = yPos + currentY - startY;
 				}
+					
 				currentX = startX;
+				currentY = startY;
+				scrollingState = ScrollingState.NO_SCROLL;
 				postInvalidate();
+				return true;
 			}
 			
 			return true;
@@ -80,27 +122,40 @@ public class TstActivity extends Activity {
 		@Override
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
+			
 			Log.d(APP_NAME, "Displaying " + currentImgIndex);
 			RedditLink center = linksQueue.at(currentImgIndex);
 			Bitmap centerImg = imageCache.getImage(center.getUrl());
 			
-			int titleHeight = 10;
-			float delta = currentX - startX;
-			if (delta < 0) {
-				RedditLink right = linksQueue.at(currentImgIndex + 1);
-				Bitmap rightImg = imageCache.getImage(right.getUrl());
-				canvas.drawBitmap(centerImg, delta, 0, null);
-				canvas.drawText(center.getTitle(), delta, titleHeight, textPaint);
-				canvas.drawBitmap(rightImg, centerImg.getWidth() + delta, 0, null);
-				canvas.drawText(right.getTitle(), centerImg.getWidth() + delta, titleHeight, textPaint);
-			} else {
-				RedditLink left = linksQueue.at(currentImgIndex - 1);
-				Bitmap leftImg = imageCache.getImage(left.getUrl());
-				canvas.drawBitmap(centerImg, delta, 0, null);
-				canvas.drawText(center.getTitle(), delta, titleHeight, textPaint);
-				canvas.drawBitmap(leftImg, -leftImg.getWidth() + delta, 0, null);
-				canvas.drawText(left.getTitle(), -leftImg.getWidth() + delta, titleHeight, textPaint);
+			final int titleHeight = 15;
+			
+			if (scrollingState == ScrollingState.SCROLL_Y ||
+					scrollingState == ScrollingState.NO_SCROLL) {
+				canvas.drawBitmap(centerImg, 0, yPos + currentY - startY, null);
+				canvas.drawText(center.getTitle(), 5, titleHeight, textPaint);
+				return;
 			}
+			
+			if (scrollingState == ScrollingState.SCROLL_X) {
+				float deltaX = currentX - startX;
+				if (deltaX <= 0) {
+					RedditLink right = linksQueue.at(currentImgIndex + 1);
+					Bitmap rightImg = imageCache.getImage(right.getUrl());
+					canvas.drawBitmap(centerImg, deltaX, 0, null);
+					canvas.drawText(center.getTitle(), deltaX, titleHeight, textPaint);
+					canvas.drawBitmap(rightImg, centerImg.getWidth() + deltaX, 0, null);
+					canvas.drawText(right.getTitle(), centerImg.getWidth() + deltaX, titleHeight, textPaint);
+				} else if (deltaX > 0) {
+					RedditLink left = linksQueue.at(currentImgIndex - 1);
+					Bitmap leftImg = imageCache.getImage(left.getUrl());
+					canvas.drawBitmap(centerImg, deltaX, 0, null);
+					canvas.drawText(center.getTitle(), deltaX, titleHeight, textPaint);
+					canvas.drawBitmap(leftImg, -leftImg.getWidth() + deltaX, 0, null);
+					canvas.drawText(left.getTitle(), -leftImg.getWidth() + deltaX, titleHeight, textPaint);
+				}
+				return;
+			}			
+			
 		}
 
 	}
