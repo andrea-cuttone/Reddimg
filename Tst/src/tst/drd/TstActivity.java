@@ -1,19 +1,11 @@
 package tst.drd;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -41,7 +33,6 @@ public class TstActivity extends Activity {
 
 		private RedditLinkQueue linksQueue;
 		private ImageCache imageCache;
-		private Paint textPaint;
 		private int screenW;
 		private int screenH;
 
@@ -51,6 +42,8 @@ public class TstActivity extends Activity {
 		private float yPos;		
 		private ScrollingState scrollingState;
 		private Bitmap currentImg;
+
+		private LinkRenderer linkRenderer;
 
 
 		public MyView(Context context) {
@@ -67,15 +60,11 @@ public class TstActivity extends Activity {
 			
 			yPos = 0;
 			scrollingState = ScrollingState.NO_SCROLL;
-					
-			textPaint = new Paint();
-			textPaint.setColor(Color.WHITE);
-			textPaint.setTextSize(14.0f);
-			textPaint.setAntiAlias(true);
 			
+			linkRenderer = new LinkRenderer(screenW, screenH);
+			loadImage();			
+
 			setOnTouchListener(this);
-			
-			loadImage();
 		}
 
 		public boolean onTouch(View v, MotionEvent event) {
@@ -111,57 +100,12 @@ public class TstActivity extends Activity {
 		}
 
 		private void loadImage() {
-			final int TITLE_SIDE_MARGIN = 5;
-			final int TITLE_TOP = 15;
-			final int TEXT_HEIGHT = 15;
-
-			Log.d(APP_NAME, "Preparing image #" + currentLinkIndex);
-			
 			RedditLink link = linksQueue.at(currentLinkIndex);
 			Bitmap image = imageCache.getImage(link.getUrl());
 			if(currentImg != null) {
 				currentImg.recycle();
 			}
-			currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + 5 * TEXT_HEIGHT, Bitmap.Config.ARGB_8888);
-			Canvas canvas = new Canvas(currentImg);
-			
-			String title = link.getTitle();
-			List<String> tokens = new ArrayList<String>(Arrays.asList(title.split(" ")));
-			int tokenCount = 0;
-			int lineCount = 0;
-			while (tokenCount < tokens.size()) {
-				StringBuilder sb = new StringBuilder();
-				Rect rect = new Rect(0, 0, 0, 0);
-				while (rect.right < screenW - 2 * TITLE_SIDE_MARGIN && tokenCount < tokens.size()) {
-					sb.append(tokens.get(tokenCount) + " ");
-					tokenCount++;
-					textPaint.getTextBounds(sb.toString(), 0, sb.length(), rect);
-				}
-
-				String lineText = sb.toString().trim();
-				if(rect.right >= screenW - 2 * TITLE_SIDE_MARGIN) {
-					tokenCount--;
-					lineText = lineText.substring(0, lineText.length() - tokens.get(tokenCount).length());
-				}
-				if(lineText.length() > 0) {
-					canvas.drawText(lineText, TITLE_SIDE_MARGIN, TITLE_TOP + lineCount * TEXT_HEIGHT, textPaint);
-					lineCount++;
-				} else {
-					// token is too long, split it and retry
-					String tooLongToken = tokens.get(tokenCount);
-					rect = new Rect(0, 0, 0, 0);
-					int tooLongTokenCounter = 0;
-					while (rect.right < screenW - 2 * TITLE_SIDE_MARGIN) {
-						textPaint.getTextBounds(tooLongToken, 0, tooLongTokenCounter, rect);
-						tooLongTokenCounter++;
-					}
-					tokens.remove(tokenCount);
-					tokens.add(tokenCount, tooLongToken.substring(0, tooLongTokenCounter - 2));
-					tokens.add(tokenCount + 1, tooLongToken.substring(tooLongTokenCounter - 2, tooLongToken.length()));
-				}
-			}
-			
-			canvas.drawBitmap(image, 0, TITLE_TOP + lineCount * TEXT_HEIGHT, null);
+			currentImg = linkRenderer.render(link, image);
 			yPos = 0;
 		}
 
