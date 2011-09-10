@@ -17,8 +17,9 @@ public class LinkRenderer {
 	private Paint textPaint;
 
 	private static final int TITLE_SIDE_MARGIN = 5;
-	private static final int TITLE_TOP = 15;
-	private static final int TEXT_HEIGHT = 15;
+	private static final int TITLE_TOP = 14;
+	private static final int TEXT_HEIGHT = 16;
+	private static final int TITLE_TO_IMG_MARGIN = 10;
 	
 	public LinkRenderer(int screenW, int screenH) {
 		this.screenW = screenW;
@@ -66,12 +67,13 @@ public class LinkRenderer {
 			}
 		}
 		
-		Bitmap currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + TITLE_TOP + lines.size() * TEXT_HEIGHT, Bitmap.Config.ARGB_8888);
+		int imgYpos = TITLE_TOP + (lines.size()-1) * TEXT_HEIGHT + TITLE_TO_IMG_MARGIN;
+		Bitmap currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);
 		Canvas canvas = new Canvas(currentImg);
 		for(int i = 0; i < lines.size(); i++) {
 			canvas.drawText(lines.get(i), TITLE_SIDE_MARGIN, TITLE_TOP + i * TEXT_HEIGHT, textPaint);
 		}
-		canvas.drawBitmap(image, 0, TITLE_TOP + lines.size() * TEXT_HEIGHT, null);
+		canvas.drawBitmap(image, 0, imgYpos, null);
 		return currentImg;
 	}
 

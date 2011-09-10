@@ -35,7 +35,7 @@ public class RedditLinkQueue {
 			return new RedditLink("", "");
 		}
 		
-		if(index >= links.size()) {
+		while(index >= links.size()) {
 			getNewLinks();
 		}
 		return links.get(index);

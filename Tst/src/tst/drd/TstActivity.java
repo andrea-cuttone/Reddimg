@@ -75,7 +75,6 @@ public class TstActivity extends Activity {
 					scrollingState = ScrollingState.SCROLL_RIGHT;
 				} else {
 					startY = event.getY();
-					currentY = startY;
 				}
 			} else if (event.getAction() == MotionEvent.ACTION_MOVE) {
 				if(scrollingState == ScrollingState.NO_SCROLL) {
@@ -92,7 +91,7 @@ public class TstActivity extends Activity {
 				} else {
 					yPos = yPos + currentY - startY;
 				}
-				currentY = startY;
+				currentY = startY = 0;
 				scrollingState = ScrollingState.NO_SCROLL;
 				postInvalidate();
 			}
@@ -112,7 +111,14 @@ public class TstActivity extends Activity {
 		@Override
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
-			canvas.drawBitmap(currentImg, 0, yPos + currentY - startY, null);
+			float actualY = yPos + currentY - startY;
+			if(actualY < -currentImg.getHeight() + screenH) {
+				actualY = -currentImg.getHeight() + screenH;
+			} 
+			if(actualY > 0) {
+				actualY = 0;
+			}
+			canvas.drawBitmap(currentImg, 0, actualY, null);
 		}
 
 	}
