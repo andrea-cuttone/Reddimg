@@ -1,4 +1,4 @@
-package tst.drd;
+package net.acuttone.reddimg;
 
 import java.util.ArrayList;
 import java.util.Arrays;

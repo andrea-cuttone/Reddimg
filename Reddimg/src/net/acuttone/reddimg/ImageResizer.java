@@ -1,4 +1,4 @@
-package tst.drd;
+package net.acuttone.reddimg;
 
 import android.graphics.Bitmap;
 

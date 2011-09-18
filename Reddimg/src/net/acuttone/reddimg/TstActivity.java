@@ -1,4 +1,4 @@
-package tst.drd;
+package net.acuttone.reddimg;
 
 import android.app.Activity;
 import android.content.Context;

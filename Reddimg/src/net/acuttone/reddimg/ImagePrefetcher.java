@@ -1,4 +1,4 @@
-package tst.drd;
+package net.acuttone.reddimg;
 
 
 public class ImagePrefetcher extends Thread {
