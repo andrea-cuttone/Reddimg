@@ -112,12 +112,11 @@ public class TstActivity extends Activity {
 
 		private void loadImage() {
 			RedditLink currentLink = null;
-			synchronized (linksQueue) {
-				currentLink = linksQueue.get(currentLinkIndex);
-			}
-
-			Bitmap image = imageCache.getFromMem(currentLink.getUrl());
+			Bitmap image = null;
 			while (image == null) {
+				synchronized (linksQueue) {
+					currentLink = linksQueue.get(currentLinkIndex);
+				}
 				try {
 					Thread.sleep(250);
 				} catch (InterruptedException e) {

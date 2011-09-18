@@ -86,8 +86,7 @@ public class ImageCache {
 					options.inSampleSize = 1;
 					result = BitmapFactory.decodeStream(is, null, options);
 				} catch(OutOfMemoryError err) {
-					Log.e(TstActivity.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length());
-					Log.e(TstActivity.APP_NAME, err.toString());
+					Log.w(TstActivity.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length() + " : " + err.toString());
 				}
 				
 				is.close();
