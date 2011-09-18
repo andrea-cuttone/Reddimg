@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -14,6 +15,7 @@ import android.view.WindowManager;
 
 enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
+// TODO: NEED TO CLEANUP BITMAPS AND THREADS ON STATE CHANGE!!!
 public class TstActivity extends Activity {
 	
 	public static final String APP_NAME = "REDDIMG";
@@ -41,9 +43,13 @@ public class TstActivity extends Activity {
 		private float currentY;
 		private float yPos;		
 		private ScrollingState scrollingState;
-		private Bitmap currentImg;
+		private Bitmap viewBitmap;
 
 		private LinkRenderer linkRenderer;
+
+		private ImagePrefetcher imagePrefetcher;
+		
+		//private Bitmap brokenImg;
 
 
 		public MyView(Context context) {
@@ -62,9 +68,15 @@ public class TstActivity extends Activity {
 			scrollingState = ScrollingState.NO_SCROLL;
 			
 			linkRenderer = new LinkRenderer(screenW, screenH);
+			
+			imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
+			imagePrefetcher.start();
+
 			loadImage();			
 
 			setOnTouchListener(this);
+			
+			//brokenImg = Bitmap.createBitmap( 100, 100, Bitmap.Config.ARGB_8888);
 		}
 
 		public boolean onTouch(View v, MotionEvent event) {
@@ -99,12 +111,27 @@ public class TstActivity extends Activity {
 		}
 
 		private void loadImage() {
-			RedditLink link = linksQueue.at(currentLinkIndex);
-			Bitmap image = imageCache.getImage(link.getUrl());
-			if(currentImg != null) {
-				currentImg.recycle();
+			RedditLink currentLink = null;
+			synchronized (linksQueue) {
+				currentLink = linksQueue.get(currentLinkIndex);
 			}
-			currentImg = linkRenderer.render(link, image);
+
+			Bitmap image = imageCache.getFromMem(currentLink.getUrl());
+			while (image == null) {
+				try {
+					Thread.sleep(250);
+				} catch (InterruptedException e) {
+
+				}
+				image = imageCache.getFromMem(currentLink.getUrl());
+			}
+
+			Log.d(TstActivity.APP_NAME, currentLink.getUrl() + " found in mem cache");
+
+			if (viewBitmap != null) {
+				viewBitmap.recycle();
+			}
+			viewBitmap = linkRenderer.render(currentLink, image);
 			yPos = 0;
 		}
 
@@ -112,13 +139,13 @@ public class TstActivity extends Activity {
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
 			float actualY = yPos + currentY - startY;
-			if(actualY < -currentImg.getHeight() + screenH) {
-				actualY = -currentImg.getHeight() + screenH;
+			if(actualY < -viewBitmap.getHeight() + screenH) {
+				actualY = -viewBitmap.getHeight() + screenH;
 			} 
 			if(actualY > 0) {
 				actualY = 0;
 			}
-			canvas.drawBitmap(currentImg, 0, actualY, null);
+			canvas.drawBitmap(viewBitmap, 0, actualY, null);
 		}
 
 	}

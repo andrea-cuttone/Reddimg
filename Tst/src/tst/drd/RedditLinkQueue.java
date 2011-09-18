@@ -5,11 +5,13 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import android.text.Html;
 import android.util.Log;
 
 public class RedditLinkQueue {
@@ -18,6 +20,7 @@ public class RedditLinkQueue {
 	private String lastT3;
 	private String redditURL;
 	private String subreddit;
+	private int lastRequestedIndex = 0;
 	
 	public RedditLinkQueue() {
 		links = new ArrayList<RedditLink>();
@@ -29,13 +32,19 @@ public class RedditLinkQueue {
 	private boolean isUrlValid(String url) {
 		return url.matches(".*(gif|jpeg|jpg|png)$");
 	}
-
-	public RedditLink at(int index) {
+	
+	public RedditLink get(int index) {
+		lastRequestedIndex = index;
+		return getForPrefetch(index);
+	}
+	
+	public RedditLink getForPrefetch(int index) {
 		if(index < 0) {
-			return new RedditLink("", "");
+			throw new IllegalArgumentException();
 		}
 		
 		while(index >= links.size()) {
+			// TODO: add check if links cannot be fetched
 			getNewLinks();
 		}
 		return links.get(index);
@@ -61,7 +70,7 @@ public class RedditLinkQueue {
 				JSONObject obj = (JSONObject) children.get(i);
 				JSONObject cData = (JSONObject) obj.get("data");
 				String url = (String) cData.get("url");
-				String title = (String) cData.get("title");
+				String title = Html.fromHtml((String) cData.get("title")).toString();
 				lastT3 = (String) cData.get("id");
 				Log.d(TstActivity.APP_NAME, "" + count + " [" + lastT3 + "] " + title + " ("
 						+ url + ")");
@@ -75,6 +84,19 @@ public class RedditLinkQueue {
 			Log.e(TstActivity.APP_NAME, e.toString());
 		}
 
+	}
+
+	public int getLastRequestedIndex() {
+		return lastRequestedIndex;
+	}
+
+	public void removeUrl(String targetUrl) {
+		for(Iterator<RedditLink> iter = links.iterator(); iter.hasNext();) {
+			if(iter.next().getUrl().equals(targetUrl)) {
+				iter.remove();
+				break;
+			}
+		}
 	}
 	
 }

@@ -10,10 +10,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map.Entry;
 
 import android.graphics.Bitmap;
@@ -24,10 +22,10 @@ import android.util.Log;
 public class ImageCache {
 
 	private static final int MAX_IMAGE_SIZE = 1000000;
-	private static final int IN_MEN_CACHE_SIZE = 3;
+	public static final int IN_MEM_CACHE_SIZE = 3;
 	private File reddimgDir;
 	private LinkedHashMap<String, Bitmap> inMemCache;
-	private Bitmap brokenImg;
+
 	private ImageResizer imgResizer;
 
 	public ImageCache(ImageResizer imgResizer) {
@@ -39,56 +37,59 @@ public class ImageCache {
 			reddimgDir.mkdir();
 		}
 		inMemCache = new LinkedHashMap<String, Bitmap>();
-		brokenImg = Bitmap.createBitmap( 100, 100, Bitmap.Config.ARGB_8888);
+		
 	}
 
-	public Bitmap getImage(String url) {
-		if(url.length() == 0) {
-			return brokenImg;
+	public Bitmap getFromMem(String url) {
+		synchronized (inMemCache) {
+			if (inMemCache.containsKey(url)) {
+				Bitmap bitmap = inMemCache.get(url);
+				// bump the image in the cache
+//				inMemCache.remove(url);
+//				inMemCache.put(url, bitmap);
+				return bitmap;
+			} else {
+				return null;
+			}
 		}
-		
-		Bitmap result = getFromMem(url);
-
-		if (result != null) {			
-			Log.d(TstActivity.APP_NAME, url + " found in mem cache");
-			return result;
-		}
-
-		result = getFromDisk(url);
+	}
+	
+	public boolean prepareImage(String url) {
+		Log.d(TstActivity.APP_NAME, "Preparing " + url);
+		Bitmap result = getFromDisk(url);
 		if (result != null) {
 			Log.d(TstActivity.APP_NAME, url + " found on disk cache");
-			return result;
+			return true;
 		}
 		
 		result = getFromWeb(url);
 		if(result != null) {
 			Log.d(TstActivity.APP_NAME, url + " dl from web");
-			return result;
+			return true;
 		}
 		
-		Log.w(TstActivity.APP_NAME, url + " could not be dl from web");		
-		return brokenImg;
+		Log.w(TstActivity.APP_NAME, url + " could not be dl from web");
+		return false;
 	}
 
-	private Bitmap getFromMem(String url) {
-		if (inMemCache.containsKey(url)) {
-			// bump the image in the cache
-			Bitmap bitmap = inMemCache.get(url);
-			inMemCache.remove(url);
-			inMemCache.put(url, bitmap);
-			return bitmap;
-		} else {
-			return null;
-		}
-	}
-
+	// TODO: add max disk cache size
 	private Bitmap getFromDisk(String url) {
 		Bitmap result = null;
 		File img = new File(reddimgDir, urlToFilename(url));
 		if (img.exists()) {
 			try {
 				FileInputStream is = new FileInputStream(img);
-				result = BitmapFactory.decodeStream(is, null, null);
+				
+				// TODO: add downsampling for large imgs
+				try {
+					BitmapFactory.Options options = new BitmapFactory.Options();
+					options.inSampleSize = 1;
+					result = BitmapFactory.decodeStream(is, null, options);
+				} catch(OutOfMemoryError err) {
+					Log.e(TstActivity.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length());
+					Log.e(TstActivity.APP_NAME, err.toString());
+				}
+				
 				is.close();
 			} catch (FileNotFoundException e) {
 				Log.e(TstActivity.APP_NAME, e.toString());
@@ -103,22 +104,10 @@ public class ImageCache {
 		return getFromMem(url);
 	}
 
-	private void storeInMem(String url, Bitmap bitmap) {
-		if (inMemCache.size() >= IN_MEN_CACHE_SIZE) {
-			Iterator<Entry<String, Bitmap>> iterator = inMemCache.entrySet().iterator();
-			Entry<String, Bitmap> entry = iterator.next();
-			entry.getValue().recycle();
-			iterator.remove();
-			Log.d(TstActivity.APP_NAME, entry.getKey() + " removed from mem cache");
-		}
-		Bitmap resizedImg = imgResizer.resize(bitmap);
-		inMemCache.put(url, resizedImg);
-	}
-
 	private Bitmap getFromWeb(String url) {
 		try {
 			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-			connection.setConnectTimeout(10000);
+			connection.setConnectTimeout(5000);
 			if (connection.getContentLength() < MAX_IMAGE_SIZE) {
 				File img = new File(reddimgDir, urlToFilename(url));
 				InputStream is = connection.getInputStream();
@@ -139,6 +128,20 @@ public class ImageCache {
 		}
 		
 		return null;
+	}
+	
+	private void storeInMem(String url, Bitmap bitmap) {
+		synchronized (inMemCache) {
+			if (inMemCache.size() >= IN_MEM_CACHE_SIZE) {
+				Iterator<Entry<String, Bitmap>> iterator = inMemCache.entrySet().iterator();
+				Entry<String, Bitmap> entry = iterator.next();
+				entry.getValue().recycle();
+				iterator.remove();
+				Log.d(TstActivity.APP_NAME, entry.getKey() + " removed from mem cache");
+			}
+			Bitmap resizedImg = imgResizer.resize(bitmap);
+			inMemCache.put(url, resizedImg);
+		}
 	}
 	
 	private static String urlToFilename(String url) {
