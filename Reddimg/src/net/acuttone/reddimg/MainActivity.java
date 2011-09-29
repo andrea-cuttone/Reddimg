@@ -16,9 +16,9 @@ import android.view.WindowManager;
 enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
 // TODO: NEED TO CLEANUP BITMAPS AND THREADS ON STATE CHANGE!!!
-public class TstActivity extends Activity {
+public class MainActivity extends Activity {
 	
-	public static final String APP_NAME = "REDDIMG";
+	public static String APP_NAME = "Reddimg";
 
 	/** Called when the activity is first created. */
 	@Override
@@ -125,7 +125,7 @@ public class TstActivity extends Activity {
 				image = imageCache.getFromMem(currentLink.getUrl());
 			}
 
-			Log.d(TstActivity.APP_NAME, currentLink.getUrl() + " found in mem cache");
+			Log.d(MainActivity.APP_NAME, currentLink.getUrl() + " found in mem cache");
 
 			if (viewBitmap != null) {
 				viewBitmap.recycle();

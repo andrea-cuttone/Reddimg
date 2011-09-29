@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, TstActivity!</string>
-    <string name="app_name">Tst</string>
+    <string name="app_name">Reddimg</string>
 </resources>

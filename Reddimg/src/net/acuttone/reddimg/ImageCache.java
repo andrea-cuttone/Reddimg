@@ -55,20 +55,20 @@ public class ImageCache {
 	}
 	
 	public boolean prepareImage(String url) {
-		Log.d(TstActivity.APP_NAME, "Preparing " + url);
+		Log.d(MainActivity.APP_NAME, "Preparing " + url);
 		Bitmap result = getFromDisk(url);
 		if (result != null) {
-			Log.d(TstActivity.APP_NAME, url + " found on disk cache");
+			Log.d(MainActivity.APP_NAME, url + " found on disk cache");
 			return true;
 		}
 		
 		result = getFromWeb(url);
 		if(result != null) {
-			Log.d(TstActivity.APP_NAME, url + " dl from web");
+			Log.d(MainActivity.APP_NAME, url + " dl from web");
 			return true;
 		}
 		
-		Log.w(TstActivity.APP_NAME, url + " could not be dl from web");
+		Log.w(MainActivity.APP_NAME, url + " could not be dl from web");
 		return false;
 	}
 
@@ -86,14 +86,14 @@ public class ImageCache {
 					options.inSampleSize = 1;
 					result = BitmapFactory.decodeStream(is, null, options);
 				} catch(OutOfMemoryError err) {
-					Log.w(TstActivity.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length() + " : " + err.toString());
+					Log.w(MainActivity.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length() + " : " + err.toString());
 				}
 				
 				is.close();
 			} catch (FileNotFoundException e) {
-				Log.e(TstActivity.APP_NAME, e.toString());
+				Log.e(MainActivity.APP_NAME, e.toString());
 			} catch (IOException e) {
-				Log.e(TstActivity.APP_NAME, e.toString());				
+				Log.e(MainActivity.APP_NAME, e.toString());				
 			}
 		}
 		if (result != null) {
@@ -121,9 +121,9 @@ public class ImageCache {
 				return getFromDisk(url);
 			}
 		} catch (MalformedURLException e) {
-			Log.e(TstActivity.APP_NAME, e.toString());
+			Log.e(MainActivity.APP_NAME, e.toString());
 		} catch (IOException e) {
-			Log.e(TstActivity.APP_NAME, e.toString());
+			Log.e(MainActivity.APP_NAME, e.toString());
 		}
 		
 		return null;
@@ -136,7 +136,7 @@ public class ImageCache {
 				Entry<String, Bitmap> entry = iterator.next();
 				entry.getValue().recycle();
 				iterator.remove();
-				Log.d(TstActivity.APP_NAME, entry.getKey() + " removed from mem cache");
+				Log.d(MainActivity.APP_NAME, entry.getKey() + " removed from mem cache");
 			}
 			Bitmap resizedImg = imgResizer.resize(bitmap);
 			inMemCache.put(url, resizedImg);
