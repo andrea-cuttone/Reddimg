@@ -19,7 +19,7 @@ enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 // TODO: NEED TO CLEANUP BITMAPS AND THREADS ON STATE CHANGE!!!
 public class MainActivity extends Activity implements OnTouchListener {
 	
-	public static String APP_NAME = "Reddimg";
+	public static String APP_NAME = "REDDIMG";
 
 	private static final double SCROLL_MARGIN = 5.;
 

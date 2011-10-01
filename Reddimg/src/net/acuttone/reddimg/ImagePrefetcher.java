@@ -35,7 +35,7 @@ public class ImagePrefetcher extends Thread {
 			}
 			
 			try {
-				Thread.sleep(2500);
+				Thread.sleep(250);
 			} catch (InterruptedException e) {
 
 			}

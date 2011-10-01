@@ -30,7 +30,8 @@ public class LoadingActivity extends Activity {
 		linksQueue = (RedditLinkQueue) RedditApplication.getInstance().getMap().get("LINK_QUEUE");
 		imgCache = (ImageCache) RedditApplication.getInstance().getMap().get("IMAGE_CACHE");
 		paint = new Paint();
-		paint.setColor(Color.BLUE);
+		paint.setColor(Color.WHITE);
+		paint.setTextSize(16.0f);
 	}
 	
 	class LoadingView extends View {
@@ -46,8 +47,6 @@ public class LoadingActivity extends Activity {
 		protected void onDraw(Canvas canvas) {
 			// TODO: move to periodic action
 			super.onDraw(canvas);
-			canvas.drawColor(Color.RED);
-			
 			
 			RedditLink currentLink = null;	
 			synchronized (linksQueue) {
