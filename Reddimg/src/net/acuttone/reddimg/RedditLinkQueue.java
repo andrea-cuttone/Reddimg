@@ -35,7 +35,11 @@ public class RedditLinkQueue {
 	
 	public RedditLink get(int index) {
 		lastRequestedIndex = index;
-		return getForPrefetch(index);
+		if(index >= links.size()) {
+			return null;
+		} else {
+			return links.get(index);
+		}
 	}
 	
 	public RedditLink getForPrefetch(int index) {

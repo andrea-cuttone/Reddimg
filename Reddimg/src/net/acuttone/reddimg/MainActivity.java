@@ -35,9 +35,6 @@ public class MainActivity extends Activity implements OnTouchListener {
 
 	private LinkRenderer linkRenderer;
 	
-	//private Bitmap brokenImg;
-	
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -52,8 +49,6 @@ public class MainActivity extends Activity implements OnTouchListener {
 
 		startLoadingActivity();			
 
-		//brokenImg = Bitmap.createBitmap( 100, 100, Bitmap.Config.ARGB_8888);
-		
 		view = new SlideshowView(getApplicationContext());
 		setContentView(view);
 		view.setOnTouchListener(this);
@@ -119,14 +114,8 @@ public class MainActivity extends Activity implements OnTouchListener {
 			if (viewBitmap != null) {
 				viewBitmap.recycle();
 			}
-			
 			yPos = 0;
-			
-			RedditLink currentLink = null;	
-			synchronized (RedditApplication.getInstance().getLinksQueue()) {
-				currentLink = RedditApplication.getInstance().getLinksQueue().get(data.getExtras().getInt(CURRENT_INDEX));
-			}
-			
+			RedditLink currentLink = RedditApplication.getInstance().getLinksQueue().get(data.getExtras().getInt(CURRENT_INDEX));
 			Bitmap image = RedditApplication.getInstance().getImageCache().getFromMem(currentLink.getUrl());			
 			viewBitmap = linkRenderer.render(currentLink, image);
 			view.postInvalidate();
