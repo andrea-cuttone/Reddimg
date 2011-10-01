@@ -1,11 +1,9 @@
 package net.acuttone.reddimg;
 
-import android.graphics.Bitmap;
 
 public class RedditLink {
 
 	public String title;
-	public Bitmap image;
 	private String url;
 
 	public RedditLink(String url, String title) {

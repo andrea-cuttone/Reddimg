@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -21,25 +19,21 @@ public class MainActivity extends Activity implements OnTouchListener {
 	
 	public static String APP_NAME = "REDDIMG";
 
+	public static final String CURRENT_INDEX = "CURRENT_INDEX";
+
 	private static final double SCROLL_MARGIN = 5.;
 
-	private RedditLinkQueue linksQueue;
-	private ImageCache imageCache;
-	private int screenW;
-	private int screenH;
+	private static final int LOAD_IMAGE_CODE = 1;
 
-	private int currentLinkIndex = 0;
+	private int currentLinkIndex;
 	private float startY;
 	private float currentY;
 	private float yPos;		
 	private ScrollingState scrollingState;
 	private Bitmap viewBitmap;
+	private SlideshowView view;
 
 	private LinkRenderer linkRenderer;
-
-	private ImagePrefetcher imagePrefetcher;
-
-	private SlideshowView view;
 	
 	//private Bitmap brokenImg;
 	
@@ -50,25 +44,13 @@ public class MainActivity extends Activity implements OnTouchListener {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		
-		linksQueue = new RedditLinkQueue();
-		
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-		wm.getDefaultDisplay().getMetrics(displaymetrics);
-		screenW = displaymetrics.widthPixels;
-		screenH = displaymetrics.heightPixels;
-		ImageResizer imgResizer = new ImageResizer(screenW, screenH);
-		imageCache = new ImageCache(imgResizer);
-		
 		yPos = 0;
 		scrollingState = ScrollingState.NO_SCROLL;
+		currentLinkIndex = 0;
 		
-		linkRenderer = new LinkRenderer(screenW, screenH);
-		
-		imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
-		imagePrefetcher.start();
+		linkRenderer = new LinkRenderer(RedditApplication.getInstance().getScreenW(), RedditApplication.getInstance().getScreenH());
 
-		loadImage();			
+		startLoadingActivity();			
 
 		//brokenImg = Bitmap.createBitmap( 100, 100, Bitmap.Config.ARGB_8888);
 		
@@ -79,9 +61,9 @@ public class MainActivity extends Activity implements OnTouchListener {
 	
 	public boolean onTouch(View v, MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			if (event.getX() < screenW * (1. / SCROLL_MARGIN)) {
+			if (event.getX() < RedditApplication.getInstance().getScreenW() * (1. / SCROLL_MARGIN)) {
 				scrollingState = ScrollingState.SCROLL_LEFT;
-			} else if (event.getX() > screenW * (1 - 1. / SCROLL_MARGIN)) {
+			} else if (event.getX() > RedditApplication.getInstance().getScreenW() * (1 - 1. / SCROLL_MARGIN)) {
 				scrollingState = ScrollingState.SCROLL_RIGHT;
 			} else {
 				startY = event.getY();
@@ -94,10 +76,10 @@ public class MainActivity extends Activity implements OnTouchListener {
 		} else if (event.getAction() == MotionEvent.ACTION_UP) {
 			if (scrollingState == ScrollingState.SCROLL_LEFT && currentLinkIndex > 0) {
 				currentLinkIndex--;
-				loadImage();
+				startLoadingActivity();
 			} else if (scrollingState == ScrollingState.SCROLL_RIGHT) {
 				currentLinkIndex++;
-				loadImage();
+				startLoadingActivity();
 			} else {
 				yPos = yPos + currentY - startY;
 			}
@@ -124,41 +106,31 @@ public class MainActivity extends Activity implements OnTouchListener {
 		super.onRestoreInstanceState(savedInstanceState);
 	}
 
-	private void loadImage() {
-		if (viewBitmap != null) {
-			viewBitmap.recycle();
-		}
-		
-		viewBitmap = null;
-		yPos = 0;
-		
+	private void startLoadingActivity() {
 		Intent i = new Intent(this, LoadingActivity.class);
-		RedditApplication.getInstance().getMap().put("LINK_QUEUE", linksQueue);
-		RedditApplication.getInstance().getMap().put("IMAGE_CACHE", imageCache);
-		i.putExtra("CURRENT_INDEX", currentLinkIndex);
-		startActivity(i);
-		/*RedditLink currentLink = null;
-		Bitmap image = null;
-		while (image == null) {
-			synchronized (linksQueue) {
-				currentLink = linksQueue.get(currentLinkIndex);
+		i.putExtra(CURRENT_INDEX, currentLinkIndex);
+		startActivityForResult(i, LOAD_IMAGE_CODE);
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {		
+		super.onActivityResult(requestCode, resultCode, data);
+		if(LOAD_IMAGE_CODE == requestCode) {
+			if (viewBitmap != null) {
+				viewBitmap.recycle();
 			}
-			try {
-				Thread.sleep(250);
-			} catch (InterruptedException e) {
-
+			
+			yPos = 0;
+			
+			RedditLink currentLink = null;	
+			synchronized (RedditApplication.getInstance().getLinksQueue()) {
+				currentLink = RedditApplication.getInstance().getLinksQueue().get(data.getExtras().getInt(CURRENT_INDEX));
 			}
-			image = imageCache.getFromMem(currentLink.getUrl());
+			
+			Bitmap image = RedditApplication.getInstance().getImageCache().getFromMem(currentLink.getUrl());			
+			viewBitmap = linkRenderer.render(currentLink, image);
+			view.postInvalidate();
 		}
-
-		Log.d(MainActivity.APP_NAME, currentLink.getUrl() + " found in mem cache");
-
-		if (viewBitmap != null) {
-			viewBitmap.recycle();
-		}
-		
-		viewBitmap = linkRenderer.render(currentLink, image);
-		yPos = 0;*/
 	}
 
 	class SlideshowView extends View {
@@ -170,13 +142,12 @@ public class MainActivity extends Activity implements OnTouchListener {
 		@Override
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
-			viewBitmap = (Bitmap) RedditApplication.getInstance().getMap().get("IMAGE");
 			if(viewBitmap == null || viewBitmap.isRecycled()) {
 				return;
 			}
 			float actualY = yPos + currentY - startY;
-			if(actualY < -viewBitmap.getHeight() + screenH) {
-				actualY = -viewBitmap.getHeight() + screenH;
+			if(actualY < -viewBitmap.getHeight() + RedditApplication.getInstance().getScreenW()) {
+				actualY = -viewBitmap.getHeight() + RedditApplication.getInstance().getScreenH();
 			} 
 			if(actualY > 0) {
 				actualY = 0;

@@ -2,6 +2,7 @@ package net.acuttone.reddimg;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,11 +12,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-
 public class LoadingActivity extends Activity {
 
-	private RedditLinkQueue linksQueue;
-	private ImageCache imgCache;
 	private Paint paint;
 
 	/** Called when the activity is first created. */
@@ -26,49 +24,43 @@ public class LoadingActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		LoadingView view = new LoadingView(getApplicationContext());
 		setContentView(view);
-		
-		linksQueue = (RedditLinkQueue) RedditApplication.getInstance().getMap().get("LINK_QUEUE");
-		imgCache = (ImageCache) RedditApplication.getInstance().getMap().get("IMAGE_CACHE");
+
 		paint = new Paint();
 		paint.setColor(Color.WHITE);
 		paint.setTextSize(16.0f);
 	}
-	
-	class LoadingView extends View {
 
-		private LinkRenderer linkRenderer;
+	class LoadingView extends View {
 
 		public LoadingView(Context context) {
 			super(context);
-			linkRenderer = new LinkRenderer(240, 400);
 		}
-		
+
 		@Override
 		protected void onDraw(Canvas canvas) {
 			// TODO: move to periodic action
 			super.onDraw(canvas);
-			
-			RedditLink currentLink = null;	
-			synchronized (linksQueue) {
-				currentLink = linksQueue.get(getIntent().getExtras().getInt("CURRENT_INDEX"));
+
+			RedditLink currentLink = null;
+			synchronized (RedditApplication.getInstance().getLinksQueue()) {
+				currentLink = RedditApplication.getInstance().getLinksQueue().get(getIntent().getExtras().getInt(MainActivity.CURRENT_INDEX));
 			}
-			
+
 			canvas.drawText("loading " + currentLink.getUrl(), 10, 10, paint);
-			
-			Bitmap image = imgCache.getFromMem(currentLink.getUrl());
-			if(image != null) {
-				Bitmap bmp = linkRenderer.render(currentLink, image);
-				RedditApplication.getInstance().getMap().put("IMAGE", bmp);
+
+			Bitmap image = RedditApplication.getInstance().getImageCache().getFromMem(currentLink.getUrl());
+			if (image != null) {
+				setResult(RESULT_OK, getIntent());
 				finish();
 			} else {
 				try {
 					Thread.sleep(250);
 				} catch (InterruptedException e) {
-					
+
 				}
 				invalidate();
 			}
 		}
-		
+
 	}
 }
