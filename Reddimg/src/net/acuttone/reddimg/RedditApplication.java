@@ -1,7 +1,5 @@
 package net.acuttone.reddimg;
 
-import java.util.HashMap;
-
 import android.app.Application;
 import android.content.Context;
 import android.util.DisplayMetrics;
@@ -15,9 +13,7 @@ public class RedditApplication extends Application {
 	private ImageCache imageCache;
 	private int screenW;
 	private int screenH;
-	private LinkRenderer linkRenderer;
 	private ImagePrefetcher imagePrefetcher;
-	
 
     public static RedditApplication getInstance() {
       return instance;
@@ -37,9 +33,6 @@ public class RedditApplication extends Application {
 		screenH = displaymetrics.heightPixels;
 		ImageResizer imgResizer = new ImageResizer(screenW, screenH);
 		imageCache = new ImageCache(imgResizer);
-
-		linkRenderer = new LinkRenderer(screenW, screenH);
-
 		imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
 		imagePrefetcher.start();
 	}
@@ -58,14 +51,6 @@ public class RedditApplication extends Application {
 
 	public int getScreenH() {
 		return screenH;
-	}
-
-	public LinkRenderer getLinkRenderer() {
-		return linkRenderer;
-	}
-
-	public ImagePrefetcher getImagePrefetcher() {
-		return imagePrefetcher;
 	}
     
 }
