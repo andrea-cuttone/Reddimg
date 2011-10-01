@@ -73,6 +73,7 @@ public class ImageCache {
 	}
 
 	// TODO: add max disk cache size
+	// TODO: check for disk space
 	private Bitmap getFromDisk(String url) {
 		Bitmap result = null;
 		File img = new File(reddimgDir, urlToFilename(url));
