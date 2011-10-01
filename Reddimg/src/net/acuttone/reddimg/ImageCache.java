@@ -30,7 +30,7 @@ public class ImageCache {
 
 	public ImageCache(ImageResizer imgResizer) {
 		this.imgResizer = imgResizer;
-		
+		// TODO: use http://developer.android.com/reference/android/content/Context.html#getExternalCacheDir()
 		File sdCard = Environment.getExternalStorageDirectory();
 		reddimgDir = new File(sdCard.getAbsolutePath() + "/Reddimg");
 		if(reddimgDir.exists() == false) {
@@ -103,6 +103,7 @@ public class ImageCache {
 		return getFromMem(url);
 	}
 
+	// TODO: handle when there is no connection
 	private Bitmap getFromWeb(String url) {
 		try {
 			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
