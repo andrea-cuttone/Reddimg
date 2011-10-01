@@ -118,7 +118,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 			RedditLink currentLink = RedditApplication.getInstance().getLinksQueue().get(data.getExtras().getInt(CURRENT_INDEX));
 			Bitmap image = RedditApplication.getInstance().getImageCache().getFromMem(currentLink.getUrl());			
 			viewBitmap = linkRenderer.render(currentLink, image);
-			view.postInvalidate();
+			view.invalidate();
 		}
 	}
 
@@ -135,7 +135,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 				return;
 			}
 			float actualY = yPos + currentY - startY;
-			if(actualY < -viewBitmap.getHeight() + RedditApplication.getInstance().getScreenW()) {
+			if(actualY < -viewBitmap.getHeight() + RedditApplication.getInstance().getScreenH()) {
 				actualY = -viewBitmap.getHeight() + RedditApplication.getInstance().getScreenH();
 			} 
 			if(actualY > 0) {
