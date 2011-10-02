@@ -13,9 +13,24 @@ import android.view.WindowManager;
 
 public class LoadingActivity extends Activity {
 
+	private int currentIndex;
+	private Bitmap oldBmp;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		currentIndex = getIntent().getExtras().getInt(MainActivity.CURRENT_INDEX);
+		RedditLink currentLink = RedditApplication.instance().getLinksQueue().get(currentIndex);
+		if(currentLink != null) {
+			Bitmap image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());
+			if (image != null) {
+				setResult(RESULT_OK, getIntent());
+				finish();
+				return;
+			}
+		}
+		
+		oldBmp = getIntent().getExtras().getParcelable(MainActivity.CURRENT_BMP);		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		LoadingView view = new LoadingView(getApplicationContext());
@@ -31,17 +46,19 @@ public class LoadingActivity extends Activity {
 			paint = new Paint();
 			paint.setColor(Color.WHITE);
 			paint.setTextSize(14.0f);
+			paint.setAntiAlias(true);
 		}
 
 		@Override
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
-			
-			int currentIndex = getIntent().getExtras().getInt(MainActivity.CURRENT_INDEX);
-			RedditLink currentLink = RedditApplication.getInstance().getLinksQueue().get(currentIndex);
+			if(oldBmp != null) {
+				canvas.drawBitmap(oldBmp, 0, 0, paint); 
+			}
+			RedditLink currentLink = RedditApplication.instance().getLinksQueue().get(currentIndex);
 			if(currentLink != null) {
 				canvas.drawText("loading " + currentLink.getUrl() , 20, 20, paint);				
-				Bitmap image = RedditApplication.getInstance().getImageCache().getFromMem(currentLink.getUrl());
+				Bitmap image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());
 				if (image != null) {
 					setResult(RESULT_OK, getIntent());
 					finish();
@@ -55,7 +72,7 @@ public class LoadingActivity extends Activity {
 			} catch (InterruptedException e) {
 				
 			}
-			postInvalidate();
+			invalidate();
 		}
 	}
 }

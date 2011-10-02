@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,10 +22,12 @@ public class MainActivity extends Activity implements OnTouchListener {
 	public static String APP_NAME = "REDDIMG";
 
 	public static final String CURRENT_INDEX = "CURRENT_INDEX";
+	public static final String CURRENT_BMP = "CURRENT_BMP";
 
 	private static final double SCROLL_MARGIN = 5.;
 
 	private static final int LOAD_IMAGE_CODE = 1;
+
 
 	private int currentLinkIndex;
 	private float startY;
@@ -45,7 +49,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 		scrollingState = ScrollingState.NO_SCROLL;
 		currentLinkIndex = 0;
 		
-		linkRenderer = new LinkRenderer(RedditApplication.getInstance().getScreenW(), RedditApplication.getInstance().getScreenH());
+		linkRenderer = new LinkRenderer(RedditApplication.instance().getScreenW(), RedditApplication.instance().getScreenH());
 
 		startLoadingActivity();			
 
@@ -56,9 +60,9 @@ public class MainActivity extends Activity implements OnTouchListener {
 	
 	public boolean onTouch(View v, MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			if (event.getX() < RedditApplication.getInstance().getScreenW() * (1. / SCROLL_MARGIN)) {
+			if (event.getX() < RedditApplication.instance().getScreenW() * (1. / SCROLL_MARGIN)) {
 				scrollingState = ScrollingState.SCROLL_LEFT;
-			} else if (event.getX() > RedditApplication.getInstance().getScreenW() * (1 - 1. / SCROLL_MARGIN)) {
+			} else if (event.getX() > RedditApplication.instance().getScreenW() * (1 - 1. / SCROLL_MARGIN)) {
 				scrollingState = ScrollingState.SCROLL_RIGHT;
 			} else {
 				startY = event.getY();
@@ -104,6 +108,12 @@ public class MainActivity extends Activity implements OnTouchListener {
 	private void startLoadingActivity() {
 		Intent i = new Intent(this, LoadingActivity.class);
 		i.putExtra(CURRENT_INDEX, currentLinkIndex);
+		if(viewBitmap != null) {
+			Bitmap oldBmp = Bitmap.createBitmap(viewBitmap, 0, (int)(-yPos), 
+					Math.min(viewBitmap.getWidth(), RedditApplication.instance().getScreenW()),
+					Math.min(viewBitmap.getHeight(), RedditApplication.instance().getScreenH()));
+			i.putExtra(CURRENT_BMP, oldBmp);
+		}
 		startActivityForResult(i, LOAD_IMAGE_CODE);
 	}
 	
@@ -115,8 +125,8 @@ public class MainActivity extends Activity implements OnTouchListener {
 				viewBitmap.recycle();
 			}
 			yPos = 0;
-			RedditLink currentLink = RedditApplication.getInstance().getLinksQueue().get(data.getExtras().getInt(CURRENT_INDEX));
-			Bitmap image = RedditApplication.getInstance().getImageCache().getFromMem(currentLink.getUrl());			
+			RedditLink currentLink = RedditApplication.instance().getLinksQueue().get(data.getExtras().getInt(CURRENT_INDEX));
+			Bitmap image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());			
 			viewBitmap = linkRenderer.render(currentLink, image);
 			view.invalidate();
 		}
@@ -134,14 +144,13 @@ public class MainActivity extends Activity implements OnTouchListener {
 			if(viewBitmap == null || viewBitmap.isRecycled()) {
 				return;
 			}
-			float actualY = yPos + currentY - startY;
-			if(actualY < -viewBitmap.getHeight() + RedditApplication.getInstance().getScreenH()) {
-				actualY = -viewBitmap.getHeight() + RedditApplication.getInstance().getScreenH();
+			if(yPos + currentY - startY < -viewBitmap.getHeight() + RedditApplication.instance().getScreenH()) {
+				yPos = -viewBitmap.getHeight() + RedditApplication.instance().getScreenH() - currentY + startY;
 			} 
-			if(actualY > 0) {
-				actualY = 0;
+			if(yPos + currentY - startY > 0) {
+				yPos = - currentY + startY;
 			}
-			canvas.drawBitmap(viewBitmap, 0, actualY, null);
+			canvas.drawBitmap(viewBitmap, 0, yPos + currentY - startY, null);
 		}
 
 	}

@@ -15,7 +15,7 @@ public class RedditApplication extends Application {
 	private int screenH;
 	private ImagePrefetcher imagePrefetcher;
 
-    public static RedditApplication getInstance() {
+    public static RedditApplication instance() {
       return instance;
     }
 
