@@ -1,11 +1,14 @@
 package net.acuttone.reddimg;
 
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -39,14 +42,17 @@ public class LoadingActivity extends Activity {
 	
 	class LoadingView extends View {
 
+		private static final int STATUS_TEXT_BOUNDS_MARGIN = 15;
 		private Paint paint;
+		private Rect statusRect;
 
 		public LoadingView(Context context) {
 			super(context);
 			paint = new Paint();
-			paint.setColor(Color.WHITE);
 			paint.setTextSize(14.0f);
 			paint.setAntiAlias(true);
+			statusRect = new Rect(20, RedditApplication.instance().getScreenH() / 3,
+					RedditApplication.instance().getScreenW() - 20, -1); 
 		}
 
 		@Override
@@ -57,14 +63,16 @@ public class LoadingActivity extends Activity {
 			}
 			RedditLink currentLink = RedditApplication.instance().getLinksQueue().get(currentIndex);
 			if(currentLink != null) {
-				canvas.drawText("loading " + currentLink.getUrl() , 20, 20, paint);				
+				String text = "loading " + currentLink.getUrl();
+				drawStatus(canvas, text);				
 				Bitmap image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());
 				if (image != null) {
 					setResult(RESULT_OK, getIntent());
 					finish();
 				}
 			} else {
-				canvas.drawText("fetching new links...", 20, 20, paint);				
+				String text = "fetching new links...";
+				drawStatus(canvas, text);				
 			}
 
 			try {
@@ -74,5 +82,19 @@ public class LoadingActivity extends Activity {
 			}
 			invalidate();
 		}
+
+		private void drawStatus(Canvas canvas, String text) {
+			List<String> wrappedLines = TextWrapper.getWrappedLines(text, statusRect.width(), paint);
+			Rect bounds = TextWrapper.getMultilineBounds(wrappedLines, statusRect.left, statusRect.top, paint);
+			bounds.left = 0;
+			bounds.right = RedditApplication.instance().getScreenW();
+			bounds.top -= STATUS_TEXT_BOUNDS_MARGIN;
+			bounds.bottom += STATUS_TEXT_BOUNDS_MARGIN;
+			paint.setColor(Color.BLACK);
+			canvas.drawRect(bounds, paint);
+			paint.setColor(Color.WHITE);
+			TextWrapper.drawTextLines(canvas, wrappedLines, statusRect.left, statusRect.top, paint);
+		}
 	}
+	
 }
