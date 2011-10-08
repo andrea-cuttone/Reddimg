@@ -52,5 +52,9 @@ public class RedditApplication extends Application {
 	public int getScreenH() {
 		return screenH;
 	}
+
+	public ImagePrefetcher getImagePrefetcher() {
+		return imagePrefetcher;
+	}
     
 }

@@ -43,14 +43,14 @@ public class RedditLinkQueue {
 	}
 	
 	public RedditLink getForPrefetch(int index) {
-		while(index >= links.size()) {
-			// TODO: add check if links cannot be fetched
+		// links does not need synch here since it is accessed only by the prefetching thread
+		if(index >= links.size()) {
 			getNewLinks();
 		}
-		return links.get(index);
+		return index >= links.size() ? null : links.get(index);
 	}
 	
-	private void getNewLinks() {
+	private void getNewLinks() {		
 		int count = 0;
 
 		try {
