@@ -44,9 +44,6 @@ public class ImageCache {
 		synchronized (inMemCache) {
 			if (inMemCache.containsKey(url)) {
 				Bitmap bitmap = inMemCache.get(url);
-				// bump the image in the cache
-//				inMemCache.remove(url);
-//				inMemCache.put(url, bitmap);
 				return bitmap;
 			} else {
 				return null;

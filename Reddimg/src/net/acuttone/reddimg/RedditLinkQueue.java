@@ -33,16 +33,16 @@ public class RedditLinkQueue {
 		return url.matches(".*(gif|jpeg|jpg|png)$");
 	}
 	
-	public RedditLink get(int index) {
+	public synchronized RedditLink get(int index) {
 		lastRequestedIndex = index;
-		return getForPrefetch(index);
+		if(index >= links.size()) {
+			return null;
+		} else {
+			return links.get(index);
+		}
 	}
 	
 	public RedditLink getForPrefetch(int index) {
-		if(index < 0) {
-			throw new IllegalArgumentException();
-		}
-		
 		while(index >= links.size()) {
 			// TODO: add check if links cannot be fetched
 			getNewLinks();
@@ -75,8 +75,10 @@ public class RedditLinkQueue {
 				Log.d(MainActivity.APP_NAME, "" + count + " [" + lastT3 + "] " + title + " ("
 						+ url + ")");
 				RedditLink newRedditLink = new RedditLink(url, title);
-				if(isUrlValid(url) && links.contains(newRedditLink) == false) {
-					links.add(newRedditLink);
+				synchronized (links) {
+					if(isUrlValid(url) && links.contains(newRedditLink) == false) {
+						links.add(newRedditLink);
+					}
 				}
 				count++;
 			}
@@ -86,11 +88,11 @@ public class RedditLinkQueue {
 
 	}
 
-	public int getLastRequestedIndex() {
+	public synchronized int getLastRequestedIndex() {
 		return lastRequestedIndex;
 	}
 
-	public void removeUrl(String targetUrl) {
+	public synchronized void removeUrl(String targetUrl) {
 		for(Iterator<RedditLink> iter = links.iterator(); iter.hasNext();) {
 			if(iter.next().getUrl().equals(targetUrl)) {
 				iter.remove();
