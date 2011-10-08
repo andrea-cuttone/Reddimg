@@ -118,7 +118,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {		
 		super.onActivityResult(requestCode, resultCode, data);
-		if(LOAD_IMAGE_CODE == requestCode) {
+		if(LOAD_IMAGE_CODE == requestCode && RESULT_OK == resultCode) {
 			if (viewBitmap != null) {
 				viewBitmap.recycle();
 			}
@@ -127,6 +127,11 @@ public class MainActivity extends Activity implements OnTouchListener {
 			Bitmap image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());			
 			viewBitmap = linkRenderer.render(currentLink, image);
 			view.invalidate();
+		} else {
+			currentLinkIndex--;
+			if(currentLinkIndex < 0) {
+				currentLinkIndex = 0;
+			}
 		}
 	}
 
