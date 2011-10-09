@@ -142,6 +142,17 @@ public class ImageCache {
 		}
 	}
 	
+	public void clearMemCache() {
+		synchronized (inMemCache) {
+			for(Iterator<Entry<String, Bitmap>> iterator = inMemCache.entrySet().iterator(); iterator.hasNext();) {
+				Entry<String, Bitmap> entry = iterator.next();
+				entry.getValue().recycle();
+				iterator.remove();
+			}
+			Log.d(MainActivity.APP_NAME, "mem cache cleared");
+		}
+	}
+	
 	private static String urlToFilename(String url) {
 		return url.replaceAll("[\\W&&[^\\.]]+", "_");
 	}

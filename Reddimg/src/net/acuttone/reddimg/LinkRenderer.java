@@ -9,8 +9,6 @@ import android.graphics.Paint;
 
 public class LinkRenderer {
 
-	private int screenW;
-	private int screenH;
 	private Paint textPaint;
 
 	private static final int TITLE_SIDE_MARGIN = 5;
@@ -18,10 +16,7 @@ public class LinkRenderer {
 	private static final int TEXT_HEIGHT = 16;
 	private static final int TITLE_TO_IMG_MARGIN = 10;
 	
-	public LinkRenderer(int screenW, int screenH) {
-		this.screenW = screenW;
-		this.screenH = screenH;
-		
+	public LinkRenderer() {
 		textPaint = new Paint();
 		textPaint.setColor(Color.WHITE);
 		textPaint.setTextSize(14.0f);
@@ -30,7 +25,7 @@ public class LinkRenderer {
 	
 	public Bitmap render(RedditLink link, Bitmap image) {
 		String title = link.getTitle();
-		int width = screenW - 2 * TITLE_SIDE_MARGIN;
+		int width = RedditApplication.instance().getScreenW() - 2 * TITLE_SIDE_MARGIN;
 		List<String> lines = TextWrapper.getWrappedLines(title, width, textPaint);		
 		int imgYpos = TITLE_TOP + (lines.size()-1) * TEXT_HEIGHT + TITLE_TO_IMG_MARGIN;
 		Bitmap currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);

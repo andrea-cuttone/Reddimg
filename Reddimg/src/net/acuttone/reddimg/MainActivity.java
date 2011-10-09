@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.net.ConnectivityManager;
@@ -24,10 +25,8 @@ enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 public class MainActivity extends Activity implements OnTouchListener {
 	
 	public static String APP_NAME = "REDDIMG";
-	
 	private static final int DIALOG_CONNECTION_PROBLEM = 1;
 	private static final String CONNECTION_PROBLEM_TEXT = "Oops! There seem to be a problem with the connection";
-
 	private static final double SCROLL_MARGIN = 5.;
 
 	private int currentLinkIndex;
@@ -37,8 +36,9 @@ public class MainActivity extends Activity implements OnTouchListener {
 	private ScrollingState scrollingState;
 	private Bitmap viewBitmap;
 	private SlideshowView view;
-
 	private LinkRenderer linkRenderer;
+	private ProgressDialog progressDlg;
+	private AsyncTask<Integer, String, Bitmap> loadImgTask;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -49,9 +49,8 @@ public class MainActivity extends Activity implements OnTouchListener {
 		yPos = 0;
 		scrollingState = ScrollingState.NO_SCROLL;
 		currentLinkIndex = 0;
-		
-		linkRenderer = new LinkRenderer(RedditApplication.instance().getScreenW(), RedditApplication.instance().getScreenH());
-
+		RedditApplication.instance().loadScreenSize();
+		linkRenderer = new LinkRenderer();
 		view = new SlideshowView(getApplicationContext());
 		setContentView(view);
 		view.setOnTouchListener(this);
@@ -91,13 +90,19 @@ public class MainActivity extends Activity implements OnTouchListener {
 	
 	@Override
 	protected void onPause() {
+		// TODO: pause preloading
 		super.onPause();
 	}
 	
 	@Override
 	protected void onResume() {
+		// TODO: resume preloading
 		super.onResume();
-		view.postInvalidate();
+	}
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
 	}
 	
 	@Override
@@ -105,14 +110,35 @@ public class MainActivity extends Activity implements OnTouchListener {
 		super.onRestoreInstanceState(savedInstanceState);
 	}
 	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		if(viewBitmap != null) {
+			viewBitmap.recycle();
+			viewBitmap = null;
+			view.invalidate();
+		}
+		RedditApplication.instance().loadScreenSize();
+		RedditApplication.instance().getImageCache().clearMemCache();
+		loadImage();
+	}
+	
 	private void loadImage() {
-		final ProgressDialog dialog = ProgressDialog.show(this, "", "Loading...");
-		new AsyncTask<Integer, String, Bitmap>() {
+		if(progressDlg != null && progressDlg.isShowing()) {
+			progressDlg.dismiss();
+		}
+		progressDlg = ProgressDialog.show(this, "", "Loading...");
+		if(loadImgTask != null) {
+			loadImgTask.cancel(false);
+		}
+		loadImgTask = new AsyncTask<Integer, String, Bitmap>() {
+
+			private Bitmap image;
 
 			@Override
 			protected Bitmap doInBackground(Integer... params) {
 				int index = params[0];
-				Bitmap image = null;
+				image = null;
 				RedditLink currentLink = null;
 				while (image == null) {
 					if (isConnectionActive() == false) {
@@ -123,6 +149,10 @@ public class MainActivity extends Activity implements OnTouchListener {
 					if (currentLink != null) {
 						publishProgress("Loading " + currentLink.getUrl());
 						image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());
+						// make a copy to avoid that the cached instance is cleared
+						if(image != null) {
+							image = Bitmap.createBitmap(image);
+						}
 					} else {
 						publishProgress("Fetching links...");
 					}
@@ -134,17 +164,19 @@ public class MainActivity extends Activity implements OnTouchListener {
 					}
 				}
 
-				return linkRenderer.render(currentLink, image);
+				Bitmap result = linkRenderer.render(currentLink, image);
+				image.recycle();
+				return result;
 			}
 
 			protected void onProgressUpdate(String... values) {
-				dialog.setMessage(values[0]);
+				progressDlg.setMessage(values[0]);
 			}
 
 			@Override
 			protected void onPostExecute(Bitmap result) {
 				super.onPostExecute(result);
-				dialog.dismiss();
+				progressDlg.dismiss();
 				if (result != null) {
 					yPos = 0;
 					if (viewBitmap != null) {
@@ -157,7 +189,16 @@ public class MainActivity extends Activity implements OnTouchListener {
 					showDialog(DIALOG_CONNECTION_PROBLEM);
 				}
 			}
-		}.execute(currentLinkIndex);
+			
+			@Override
+			protected void onCancelled() {				
+				super.onCancelled();
+				if(image != null) {
+					image.recycle();
+				}
+			}
+		};
+		loadImgTask.execute(currentLinkIndex);
 	}
 	
 	@Override

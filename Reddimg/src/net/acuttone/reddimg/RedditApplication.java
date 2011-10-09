@@ -23,18 +23,20 @@ public class RedditApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 		instance = this;
-
 		linksQueue = new RedditLinkQueue();
+		loadScreenSize();
+		ImageResizer imgResizer = new ImageResizer();
+		imageCache = new ImageCache(imgResizer);
+		imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
+		imagePrefetcher.start();
+	}
 
+	public void loadScreenSize() {
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 		wm.getDefaultDisplay().getMetrics(displaymetrics);
 		screenW = displaymetrics.widthPixels;
 		screenH = displaymetrics.heightPixels;
-		ImageResizer imgResizer = new ImageResizer(screenW, screenH);
-		imageCache = new ImageCache(imgResizer);
-		imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
-		imagePrefetcher.start();
 	}
 
 	public RedditLinkQueue getLinksQueue() {

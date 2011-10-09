@@ -6,17 +6,15 @@ enum ResizeMode { FIT_ALL, FIT_WIDTH };
 
 public class ImageResizer {
 
-	private double screenW;
-	private double screenH;
 	private ResizeMode resizeMode;	
 
-	public ImageResizer(int w, int h) {
-		this.screenW = w;
-		this.screenH = h;
+	public ImageResizer() {
 		this.resizeMode = ResizeMode.FIT_WIDTH;
 	}
 	
 	public Bitmap resize(Bitmap src) {
+		double screenW = RedditApplication.instance().getScreenW();
+		double screenH = RedditApplication.instance().getScreenH();
 		
 		double targetW, targetH;
 		if(resizeMode == ResizeMode.FIT_WIDTH || 
