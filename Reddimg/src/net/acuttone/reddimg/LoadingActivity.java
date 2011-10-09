@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+// TODO: this should be a dlg! http://developer.android.com/guide/topics/ui/dialogs.html
 public class LoadingActivity extends Activity {
 
 	private static final int DIALOG_CONNECTION_PROBLEM = 1;

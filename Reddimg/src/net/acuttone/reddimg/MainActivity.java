@@ -1,10 +1,12 @@
 package net.acuttone.reddimg;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,7 +27,6 @@ public class MainActivity extends Activity implements OnTouchListener {
 	private static final double SCROLL_MARGIN = 5.;
 
 	private static final int LOAD_IMAGE_CODE = 1;
-
 
 	private int currentLinkIndex;
 	private float startY;
@@ -49,11 +50,10 @@ public class MainActivity extends Activity implements OnTouchListener {
 		
 		linkRenderer = new LinkRenderer(RedditApplication.instance().getScreenW(), RedditApplication.instance().getScreenH());
 
-		startLoadingActivity();			
-
 		view = new SlideshowView(getApplicationContext());
 		setContentView(view);
 		view.setOnTouchListener(this);
+		loadImage();			
 	}
 	
 	public boolean onTouch(View v, MotionEvent event) {
@@ -73,10 +73,10 @@ public class MainActivity extends Activity implements OnTouchListener {
 		} else if (event.getAction() == MotionEvent.ACTION_UP) {
 			if (scrollingState == ScrollingState.SCROLL_LEFT && currentLinkIndex > 0) {
 				currentLinkIndex--;
-				startLoadingActivity();
+				loadImage();
 			} else if (scrollingState == ScrollingState.SCROLL_RIGHT) {
 				currentLinkIndex++;
-				startLoadingActivity();
+				loadImage();
 			} else {
 				yPos = yPos + currentY - startY;
 			}
@@ -102,8 +102,54 @@ public class MainActivity extends Activity implements OnTouchListener {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
 	}
+	
+	private void loadImage() {
+		final ProgressDialog dialog = ProgressDialog.show(this, "", "Loading...");
+		new AsyncTask<Integer, String, Bitmap>() {
+			
+			@Override
+			protected Bitmap doInBackground(Integer... params) {
+				int index = params[0];
+				Bitmap image = null;
+				RedditLink currentLink = null;
+				while (image == null) {
+					currentLink = RedditApplication.instance().getLinksQueue().get(index);
+					if (currentLink != null) {
+						publishProgress("Loading " + currentLink.getUrl());
+						image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());
+					} else {
+						publishProgress("Fetching links...");
+					}
 
-	private void startLoadingActivity() {
+					try {
+						Thread.sleep(250);
+					} catch (InterruptedException e) {
+
+					}
+				}
+				
+				return linkRenderer.render(currentLink, image);
+			}
+			
+			protected void onProgressUpdate(String... values) {
+				dialog.setMessage(values[0]);
+			}
+			
+			@Override
+			protected void onPostExecute(Bitmap result) {
+				super.onPostExecute(result);
+				yPos = 0;
+				if (viewBitmap != null) {
+					viewBitmap.recycle();
+				}
+				viewBitmap = result;
+				view.invalidate();
+				dialog.dismiss();
+			}
+		}.execute(currentLinkIndex);
+	}
+
+	/*private void startLoadingActivity() {
 		Intent i = new Intent(this, LoadingActivity.class);
 		i.putExtra(CURRENT_INDEX, currentLinkIndex);
 		if(viewBitmap != null) {
@@ -133,7 +179,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 				currentLinkIndex = 0;
 			}
 		}
-	}
+	}*/
 
 	class SlideshowView extends View {
 
