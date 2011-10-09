@@ -1,11 +1,15 @@
 package net.acuttone.reddimg;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -20,13 +24,11 @@ enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 public class MainActivity extends Activity implements OnTouchListener {
 	
 	public static String APP_NAME = "REDDIMG";
-
-	public static final String CURRENT_INDEX = "CURRENT_INDEX";
-	public static final String CURRENT_BMP = "CURRENT_BMP";
+	
+	private static final int DIALOG_CONNECTION_PROBLEM = 1;
+	private static final String CONNECTION_PROBLEM_TEXT = "Oops! There seem to be a problem with the connection";
 
 	private static final double SCROLL_MARGIN = 5.;
-
-	private static final int LOAD_IMAGE_CODE = 1;
 
 	private int currentLinkIndex;
 	private float startY;
@@ -106,13 +108,17 @@ public class MainActivity extends Activity implements OnTouchListener {
 	private void loadImage() {
 		final ProgressDialog dialog = ProgressDialog.show(this, "", "Loading...");
 		new AsyncTask<Integer, String, Bitmap>() {
-			
+
 			@Override
 			protected Bitmap doInBackground(Integer... params) {
 				int index = params[0];
 				Bitmap image = null;
 				RedditLink currentLink = null;
 				while (image == null) {
+					if (isConnectionActive() == false) {
+						return null;
+					}
+
 					currentLink = RedditApplication.instance().getLinksQueue().get(index);
 					if (currentLink != null) {
 						publishProgress("Loading " + currentLink.getUrl());
@@ -127,59 +133,53 @@ public class MainActivity extends Activity implements OnTouchListener {
 
 					}
 				}
-				
+
 				return linkRenderer.render(currentLink, image);
 			}
-			
+
 			protected void onProgressUpdate(String... values) {
 				dialog.setMessage(values[0]);
 			}
-			
+
 			@Override
 			protected void onPostExecute(Bitmap result) {
 				super.onPostExecute(result);
-				yPos = 0;
-				if (viewBitmap != null) {
-					viewBitmap.recycle();
-				}
-				viewBitmap = result;
-				view.invalidate();
 				dialog.dismiss();
+				if (result != null) {
+					yPos = 0;
+					if (viewBitmap != null) {
+						viewBitmap.recycle();
+					}
+					viewBitmap = result;
+					view.invalidate();
+				} else {
+					RedditApplication.instance().getImagePrefetcher().setPaused(true);
+					showDialog(DIALOG_CONNECTION_PROBLEM);
+				}
 			}
 		}.execute(currentLinkIndex);
 	}
-
-	/*private void startLoadingActivity() {
-		Intent i = new Intent(this, LoadingActivity.class);
-		i.putExtra(CURRENT_INDEX, currentLinkIndex);
-		if(viewBitmap != null) {
-			Bitmap oldBmp = Bitmap.createBitmap(viewBitmap, 0, (int)(-yPos), 
-					Math.min(viewBitmap.getWidth(), RedditApplication.instance().getScreenW()),
-					Math.min(viewBitmap.getHeight(), RedditApplication.instance().getScreenH()));
-			i.putExtra(CURRENT_BMP, oldBmp);
-		}
-		startActivityForResult(i, LOAD_IMAGE_CODE);
-	}
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {		
-		super.onActivityResult(requestCode, resultCode, data);
-		if(LOAD_IMAGE_CODE == requestCode && RESULT_OK == resultCode) {
-			if (viewBitmap != null) {
-				viewBitmap.recycle();
-			}
-			yPos = 0;
-			RedditLink currentLink = RedditApplication.instance().getLinksQueue().get(data.getExtras().getInt(CURRENT_INDEX));
-			Bitmap image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());			
-			viewBitmap = linkRenderer.render(currentLink, image);
-			view.invalidate();
-		} else {
-			currentLinkIndex--;
-			if(currentLinkIndex < 0) {
-				currentLinkIndex = 0;
-			}
+	protected Dialog onCreateDialog(int id) {
+		if (DIALOG_CONNECTION_PROBLEM == id) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage(CONNECTION_PROBLEM_TEXT).setCancelable(false).setNeutralButton("Retry", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					RedditApplication.instance().getImagePrefetcher().setPaused(false);
+					loadImage();
+				}
+			});
+			return builder.create();
 		}
-	}*/
+		return super.onCreateDialog(id);
+	}
+	
+	private boolean isConnectionActive() {
+		ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = conMgr.getActiveNetworkInfo();
+		return networkInfo != null && networkInfo.isConnected() && networkInfo.isAvailable();
+	}
 
 	class SlideshowView extends View {
 
