@@ -21,7 +21,7 @@ import android.view.WindowManager;
 
 enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
-// TODO: NEED TO CLEANUP BITMAPS AND THREADS ON STATE CHANGE!!!
+// TODO: NEED TO CLEANUP BITMAPS AND THREADS ON DESTROY!
 public class MainActivity extends Activity implements OnTouchListener {
 	
 	public static String APP_NAME = "REDDIMG";
@@ -55,7 +55,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 		setContentView(view);
 		view.setOnTouchListener(this);
 		loadImage();			
-	}
+	}	
 	
 	public boolean onTouch(View v, MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -90,14 +90,14 @@ public class MainActivity extends Activity implements OnTouchListener {
 	
 	@Override
 	protected void onPause() {
-		// TODO: pause preloading
 		super.onPause();
+		RedditApplication.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.PAUSED);
 	}
 	
 	@Override
 	protected void onResume() {
-		// TODO: resume preloading
 		super.onResume();
+		RedditApplication.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.RUNNING);
 	}
 	
 	@Override
@@ -185,7 +185,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 					viewBitmap = result;
 					view.invalidate();
 				} else {
-					RedditApplication.instance().getImagePrefetcher().setPaused(true);
+					RedditApplication.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.PAUSED);
 					showDialog(DIALOG_CONNECTION_PROBLEM);
 				}
 			}
@@ -207,7 +207,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage(CONNECTION_PROBLEM_TEXT).setCancelable(false).setNeutralButton("Retry", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					RedditApplication.instance().getImagePrefetcher().setPaused(false);
+					RedditApplication.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.RUNNING);
 					loadImage();
 				}
 			});

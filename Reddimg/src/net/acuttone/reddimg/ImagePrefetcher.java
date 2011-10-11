@@ -1,22 +1,24 @@
 package net.acuttone.reddimg;
 
-// TODO: this should be implemented as TimerTask
+enum ImagePrefetcherStatus { RUNNING, PAUSED, TERMINATED };
+
 public class ImagePrefetcher extends Thread {
 
 	private ImageCache imageCache;
 	private RedditLinkQueue linkQueue;
-	private boolean paused;
+	private ImagePrefetcherStatus status;
 
 	public ImagePrefetcher(ImageCache imageCache, RedditLinkQueue linkQueue) {
 		this.imageCache = imageCache;
 		this.linkQueue = linkQueue;
-		paused = false;
+		status = ImagePrefetcherStatus.PAUSED;
 	}
 
 	@Override
 	public void run() {
-		while (true) {
-			if (isPaused() == false) {
+		boolean terminationRequested = false;
+		while (terminationRequested == false) {
+			if (ImagePrefetcherStatus.PAUSED != getStatus()) {
 				String targetUrl = "";
 				int lastRequestedIndex = linkQueue.getLastRequestedIndex();
 				for (int i = lastRequestedIndex; i < lastRequestedIndex + ImageCache.IN_MEM_CACHE_SIZE; i++) {
@@ -34,6 +36,10 @@ public class ImagePrefetcher extends Thread {
 					}
 				}
 			}
+			
+			if(ImagePrefetcherStatus.TERMINATED == getStatus()) {
+				terminationRequested = true;
+			}
 
 			try {
 				Thread.sleep(250);
@@ -43,12 +49,12 @@ public class ImagePrefetcher extends Thread {
 		}
 	}
 
-	public synchronized void setPaused(boolean paused) {
-		this.paused = paused;
+	public synchronized ImagePrefetcherStatus getStatus() {
+		return status;
 	}
 
-	public synchronized boolean isPaused() {
-		return this.paused;
+	public synchronized void setStatus(ImagePrefetcherStatus status) {
+		this.status = status;
 	}
 
 }
