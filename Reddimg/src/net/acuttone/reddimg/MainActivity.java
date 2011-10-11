@@ -21,7 +21,6 @@ import android.view.WindowManager;
 
 enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
-// TODO: NEED TO CLEANUP BITMAPS AND THREADS ON DESTROY!
 public class MainActivity extends Activity implements OnTouchListener {
 	
 	public static String APP_NAME = "REDDIMG";
@@ -55,7 +54,17 @@ public class MainActivity extends Activity implements OnTouchListener {
 		setContentView(view);
 		view.setOnTouchListener(this);
 		loadImage();			
-	}	
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if(viewBitmap != null && viewBitmap.isRecycled() == false) {
+			viewBitmap.recycle();
+		}
+		RedditApplication.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.TERMINATED);
+		RedditApplication.instance().getImageCache().clearMemCache();
+	}
 	
 	public boolean onTouch(View v, MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
