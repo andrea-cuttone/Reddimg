@@ -10,34 +10,59 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
+import java.util.TreeSet;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
 import android.util.Log;
 
+// TODO: split into memcache and diskcache
 public class ImageCache {
 
 	private static final int MAX_IMAGE_SIZE = 1000000;
 	public static final int IN_MEM_CACHE_SIZE = 3;
+	private static final long MAX_SD_CACHE_SIZE = 20971520;
+	private static final long MAX_INTERNAL_CACHE_SIZE = 2097152;
+	private static final String FILE_PREFIX = "__RDIMG_";
+	
 	private File reddimgDir;
 	private LinkedHashMap<String, Bitmap> inMemCache;
-
 	private ImageResizer imgResizer;
+	private long diskCacheSize;
+	private TreeSet<File> diskCacheFiles;
 
-	public ImageCache(ImageResizer imgResizer) {
+	public ImageCache(ImageResizer imgResizer, Context context) {
 		this.imgResizer = imgResizer;
-		// TODO: use http://developer.android.com/reference/android/content/Context.html#getExternalCacheDir()
-		File sdCard = Environment.getExternalStorageDirectory();
-		reddimgDir = new File(sdCard.getAbsolutePath() + "/Reddimg");
-		if(reddimgDir.exists() == false) {
-			reddimgDir.mkdir();
-		}
+		initDiskCache(context);
 		inMemCache = new LinkedHashMap<String, Bitmap>();
-		
+	}
+
+	private void initDiskCache(Context context) {
+		reddimgDir = context.getExternalCacheDir();
+		diskCacheSize = MAX_SD_CACHE_SIZE;
+		if(reddimgDir == null) {
+			reddimgDir = context.getCacheDir();
+			diskCacheSize = MAX_INTERNAL_CACHE_SIZE;
+		}
+		diskCacheFiles = new TreeSet<File>(new Comparator<File>() {
+
+			@Override
+			public int compare(File f1, File f2) {
+				return (int) (f1.lastModified() - f2.lastModified());
+			}
+		});
+		File[] listFiles = reddimgDir.listFiles();
+		for (File f : listFiles) {
+			if(f.isFile() && f.getName().startsWith(FILE_PREFIX)) {
+				diskCacheFiles.add(f);
+			}
+		}
+		Log.d(MainActivity.APP_NAME, "Cache dir : " + reddimgDir.getAbsolutePath() + " [" + diskCacheSize + "]");
 	}
 
 	public Bitmap getFromMem(String url) {
@@ -69,15 +94,12 @@ public class ImageCache {
 		return false;
 	}
 
-	// TODO: add max disk cache size
-	// TODO: check for disk space
 	private Bitmap getFromDisk(String url) {
 		Bitmap result = null;
 		File img = new File(reddimgDir, urlToFilename(url));
 		if (img.exists()) {
 			try {
 				FileInputStream is = new FileInputStream(img);
-				
 				// TODO: add downsampling for large imgs
 				try {
 					BitmapFactory.Options options = new BitmapFactory.Options();
@@ -101,33 +123,69 @@ public class ImageCache {
 		return getFromMem(url);
 	}
 
-	// TODO: handle when there is no connection
 	private Bitmap getFromWeb(String url) {
 		try {
 			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setConnectTimeout(5000);
-			if (connection.getContentLength() < MAX_IMAGE_SIZE) {
-				File img = new File(reddimgDir, urlToFilename(url));
-				InputStream is = connection.getInputStream();
-				OutputStream out = new FileOutputStream(img);
-				byte buf[] = new byte[1024];
-				int len;
-				while ((len = is.read(buf)) > 0) {
-					out.write(buf, 0, len);
+			int contentLength = connection.getContentLength();
+			if (contentLength > MAX_IMAGE_SIZE) {
+				Log.w(MainActivity.APP_NAME, url + " exceeds max image size");
+			} else {
+				boolean enoughSpace = checkDiskCacheSize(contentLength);
+				if (!enoughSpace) {
+					Log.w(MainActivity.APP_NAME, "Insufficient space on disk to store " + url);
+				} else {
+					File img = new File(reddimgDir, urlToFilename(url));
+					InputStream is = connection.getInputStream();
+					OutputStream out = new FileOutputStream(img);
+					byte buf[] = new byte[1024];
+					int len;
+					while ((len = is.read(buf)) > 0) {
+						out.write(buf, 0, len);
+					}
+					out.close();
+					is.close();
+					diskCacheFiles.add(img);
+					return getFromDisk(url);
 				}
-				out.close();
-				is.close();
-				return getFromDisk(url);
 			}
 		} catch (MalformedURLException e) {
 			Log.e(MainActivity.APP_NAME, e.toString());
 		} catch (IOException e) {
 			Log.e(MainActivity.APP_NAME, e.toString());
 		}
-		
+		// TODO: missing finally!
+		/*
+		 * finally {
+		 * 
+		 * }
+		 */
+
 		return null;
 	}
 	
+	private boolean checkDiskCacheSize(int contentLength) {
+		long totSize = contentLength;
+		for(File f : diskCacheFiles) {
+			totSize += f.length();
+		}
+
+		while(totSize > diskCacheSize && diskCacheFiles.size() > 0) {
+			File oldest = diskCacheFiles.first();
+			totSize -= oldest.length();
+			diskCacheFiles.remove(oldest);
+			if(oldest.exists() && 
+			   oldest.getAbsolutePath().contains("net.acuttone.reddimg/cache") && 
+			   oldest.isFile() && 
+			   oldest.getName().startsWith(FILE_PREFIX)) {
+				Log.d(MainActivity.APP_NAME, "Deleting from disk " + oldest.getName());
+				oldest.delete();
+			}
+		}
+		
+		return totSize < diskCacheSize;
+	}
+
 	private void storeInMem(String url, Bitmap bitmap) {
 		synchronized (inMemCache) {
 			if (inMemCache.size() >= IN_MEM_CACHE_SIZE) {
@@ -154,7 +212,12 @@ public class ImageCache {
 	}
 	
 	private static String urlToFilename(String url) {
-		return url.replaceAll("[\\W&&[^\\.]]+", "_");
+		url = FILE_PREFIX + url; 
+		if(url.length() > 256) {
+			url = url.substring(url.length() - 256);
+		}
+		url = url.replaceAll("[\\W]+", "_");
+		return url;
 	}
 
 }

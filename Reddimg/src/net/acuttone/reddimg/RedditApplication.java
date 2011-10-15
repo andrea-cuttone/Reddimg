@@ -26,7 +26,7 @@ public class RedditApplication extends Application {
 		linksQueue = new RedditLinkQueue();
 		loadScreenSize();
 		ImageResizer imgResizer = new ImageResizer();
-		imageCache = new ImageCache(imgResizer);
+		imageCache = new ImageCache(imgResizer, this);
 		imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
 		imagePrefetcher.start();
 	}
