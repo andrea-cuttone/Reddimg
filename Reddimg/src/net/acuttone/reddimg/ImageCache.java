@@ -124,8 +124,12 @@ public class ImageCache {
 	}
 
 	private Bitmap getFromWeb(String url) {
+		HttpURLConnection connection = null;
+		InputStream is = null;
+		OutputStream out = null;
+
 		try {
-			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+			connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setConnectTimeout(5000);
 			int contentLength = connection.getContentLength();
 			if (contentLength > MAX_IMAGE_SIZE) {
@@ -136,8 +140,8 @@ public class ImageCache {
 					Log.w(MainActivity.APP_NAME, "Insufficient space on disk to store " + url);
 				} else {
 					File img = new File(reddimgDir, urlToFilename(url));
-					InputStream is = connection.getInputStream();
-					OutputStream out = new FileOutputStream(img);
+					is = connection.getInputStream();
+					out = new FileOutputStream(img);
 					byte buf[] = new byte[1024];
 					int len;
 					while ((len = is.read(buf)) > 0) {
@@ -153,14 +157,25 @@ public class ImageCache {
 			Log.e(MainActivity.APP_NAME, e.toString());
 		} catch (IOException e) {
 			Log.e(MainActivity.APP_NAME, e.toString());
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
+			try {
+				if (is != null) {
+					is.close();
+				}
+			} catch (IOException e) {
+				Log.e(MainActivity.APP_NAME, e.toString());
+			}
+			try {
+				if (out != null) {
+					out.close();
+				}
+			} catch (IOException e) {
+				Log.e(MainActivity.APP_NAME, e.toString());
+			}
 		}
-		// TODO: missing finally!
-		/*
-		 * finally {
-		 * 
-		 * }
-		 */
-
 		return null;
 	}
 	
