@@ -62,7 +62,7 @@ public class ImageCache {
 				diskCacheFiles.add(f);
 			}
 		}
-		Log.d(MainActivity.APP_NAME, "Cache dir : " + reddimgDir.getAbsolutePath() + " [" + diskCacheSize + "]");
+		Log.d(RedditApplication.APP_NAME, "Cache dir : " + reddimgDir.getAbsolutePath() + " [" + diskCacheSize + "]");
 	}
 
 	public Bitmap getFromMem(String url) {
@@ -77,20 +77,20 @@ public class ImageCache {
 	}
 	
 	public boolean prepareImage(String url) {
-		Log.d(MainActivity.APP_NAME, "Preparing " + url);
+		Log.d(RedditApplication.APP_NAME, "Preparing " + url);
 		Bitmap result = getFromDisk(url);
 		if (result != null) {
-			Log.d(MainActivity.APP_NAME, url + " found on disk cache");
+			Log.d(RedditApplication.APP_NAME, url + " found on disk cache");
 			return true;
 		}
 		
 		result = getFromWeb(url);
 		if(result != null) {
-			Log.d(MainActivity.APP_NAME, url + " dl from web");
+			Log.d(RedditApplication.APP_NAME, url + " dl from web");
 			return true;
 		}
 		
-		Log.w(MainActivity.APP_NAME, url + " could not be dl from web");
+		Log.w(RedditApplication.APP_NAME, url + " could not be dl from web");
 		return false;
 	}
 
@@ -106,14 +106,14 @@ public class ImageCache {
 					options.inSampleSize = 1;
 					result = BitmapFactory.decodeStream(is, null, options);
 				} catch(OutOfMemoryError err) {
-					Log.w(MainActivity.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length() + " : " + err.toString());
+					Log.w(RedditApplication.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length() + " : " + err.toString());
 				}
 				
 				is.close();
 			} catch (FileNotFoundException e) {
-				Log.e(MainActivity.APP_NAME, e.toString());
+				Log.e(RedditApplication.APP_NAME, e.toString());
 			} catch (IOException e) {
-				Log.e(MainActivity.APP_NAME, e.toString());				
+				Log.e(RedditApplication.APP_NAME, e.toString());				
 			}
 		}
 		if (result != null) {
@@ -133,11 +133,11 @@ public class ImageCache {
 			connection.setConnectTimeout(5000);
 			int contentLength = connection.getContentLength();
 			if (contentLength > MAX_IMAGE_SIZE) {
-				Log.w(MainActivity.APP_NAME, url + " exceeds max image size");
+				Log.w(RedditApplication.APP_NAME, url + " exceeds max image size");
 			} else {
 				boolean enoughSpace = checkDiskCacheSize(contentLength);
 				if (!enoughSpace) {
-					Log.w(MainActivity.APP_NAME, "Insufficient space on disk to store " + url);
+					Log.w(RedditApplication.APP_NAME, "Insufficient space on disk to store " + url);
 				} else {
 					File img = new File(reddimgDir, urlToFilename(url));
 					is = connection.getInputStream();
@@ -154,9 +154,9 @@ public class ImageCache {
 				}
 			}
 		} catch (MalformedURLException e) {
-			Log.e(MainActivity.APP_NAME, e.toString());
+			Log.e(RedditApplication.APP_NAME, e.toString());
 		} catch (IOException e) {
-			Log.e(MainActivity.APP_NAME, e.toString());
+			Log.e(RedditApplication.APP_NAME, e.toString());
 		} finally {
 			if (connection != null) {
 				connection.disconnect();
@@ -166,14 +166,14 @@ public class ImageCache {
 					is.close();
 				}
 			} catch (IOException e) {
-				Log.e(MainActivity.APP_NAME, e.toString());
+				Log.e(RedditApplication.APP_NAME, e.toString());
 			}
 			try {
 				if (out != null) {
 					out.close();
 				}
 			} catch (IOException e) {
-				Log.e(MainActivity.APP_NAME, e.toString());
+				Log.e(RedditApplication.APP_NAME, e.toString());
 			}
 		}
 		return null;
@@ -193,7 +193,7 @@ public class ImageCache {
 			   oldest.getAbsolutePath().contains("net.acuttone.reddimg/cache") && 
 			   oldest.isFile() && 
 			   oldest.getName().startsWith(FILE_PREFIX)) {
-				Log.d(MainActivity.APP_NAME, "Deleting from disk " + oldest.getName());
+				Log.d(RedditApplication.APP_NAME, "Deleting from disk " + oldest.getName());
 				oldest.delete();
 			}
 		}
@@ -208,7 +208,7 @@ public class ImageCache {
 				Entry<String, Bitmap> entry = iterator.next();
 				entry.getValue().recycle();
 				iterator.remove();
-				Log.d(MainActivity.APP_NAME, entry.getKey() + " removed from mem cache");
+				Log.d(RedditApplication.APP_NAME, entry.getKey() + " removed from mem cache");
 			}
 			Bitmap resizedImg = imgResizer.resize(bitmap);
 			inMemCache.put(url, resizedImg);
@@ -222,7 +222,7 @@ public class ImageCache {
 				entry.getValue().recycle();
 				iterator.remove();
 			}
-			Log.d(MainActivity.APP_NAME, "mem cache cleared");
+			Log.d(RedditApplication.APP_NAME, "mem cache cleared");
 		}
 	}
 	

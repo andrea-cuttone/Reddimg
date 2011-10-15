@@ -23,7 +23,6 @@ enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
 public class MainActivity extends Activity implements OnTouchListener {
 	
-	public static String APP_NAME = "REDDIMG"; //TODO: move to ReddimgApp
 	private static final int DIALOG_CONNECTION_PROBLEM = 1;
 	private static final String CONNECTION_PROBLEM_TEXT = "Oops! There seem to be a problem with the connection";
 	private static final double SCROLL_MARGIN = 5.;

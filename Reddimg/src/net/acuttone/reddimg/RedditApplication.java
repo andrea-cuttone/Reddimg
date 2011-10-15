@@ -8,6 +8,8 @@ import android.view.WindowManager;
 public class RedditApplication extends Application {
 
     private static RedditApplication instance;
+    
+    public static String APP_NAME = "REDDIMG";
 	
 	private RedditLinkQueue linksQueue;
 	private ImageCache imageCache;

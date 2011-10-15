@@ -72,7 +72,7 @@ public class RedditLinkQueue {
 				String url = (String) cData.get("url");
 				String title = Html.fromHtml((String) cData.get("title")).toString();
 				lastT3 = (String) cData.get("id");
-				Log.d(MainActivity.APP_NAME, "" + count + " [" + lastT3 + "] " + title + " ("
+				Log.d(RedditApplication.APP_NAME, "" + count + " [" + lastT3 + "] " + title + " ("
 						+ url + ")");
 				RedditLink newRedditLink = new RedditLink(url, title);
 				synchronized (links) {
@@ -83,7 +83,7 @@ public class RedditLinkQueue {
 				count++;
 			}
 		} catch (Exception e) {
-			Log.e(MainActivity.APP_NAME, e.toString());
+			Log.e(RedditApplication.APP_NAME, e.toString());
 		}
 
 	}
