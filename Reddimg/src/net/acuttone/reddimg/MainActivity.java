@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -13,6 +14,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -21,6 +25,7 @@ import android.view.WindowManager;
 
 enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
+// TODO: check http://saigeethamn.blogspot.com/2010/05/image-switcher-view-android-developer.html
 public class MainActivity extends Activity implements OnTouchListener {
 	
 	private static final int DIALOG_CONNECTION_PROBLEM = 1;
@@ -228,6 +233,34 @@ public class MainActivity extends Activity implements OnTouchListener {
 		ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = conMgr.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && networkInfo.isAvailable();
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = new MenuInflater(this);
+		inflater.inflate(R.menu.mainmenu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		RedditLink currentLink = null;
+		switch (item.getItemId()) {
+		case R.id.loginmenuitem:
+			Intent intent = new Intent(this, LoginActivity.class);
+			startActivity(intent);
+			return true;
+		case R.id.upvotemenuitem:
+			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
+			RedditApplication.instance().getRedditClient().vote(currentLink.getId(), RedditClient.UPVOTE);
+			return true;
+		case R.id.downvotemenuitem:
+			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
+			RedditApplication.instance().getRedditClient().vote(currentLink.getId(), RedditClient.DOWNVOTE);
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
 	}
 
 	class SlideshowView extends View {

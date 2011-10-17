@@ -74,7 +74,7 @@ public class RedditLinkQueue {
 				lastT3 = (String) cData.get("id");
 				Log.d(RedditApplication.APP_NAME, "" + count + " [" + lastT3 + "] " + title + " ("
 						+ url + ")");
-				RedditLink newRedditLink = new RedditLink(url, title);
+				RedditLink newRedditLink = new RedditLink(lastT3, url, title);
 				synchronized (links) {
 					if(isUrlValid(url) && links.contains(newRedditLink) == false) {
 						links.add(newRedditLink);

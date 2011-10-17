@@ -5,11 +5,16 @@ public class RedditLink {
 
 	public String title;
 	private String url;
+	private String id;
 
-	public RedditLink(String url, String title) {
-		super();
+	public RedditLink(String id, String url, String title) {
+		this.id = id;
 		this.title = title;
 		this.url = url;
+	}
+	
+	public String getId() {
+		return id;
 	}
 	
 	public String getTitle() {
@@ -49,7 +54,5 @@ public class RedditLink {
 			return false;
 		return true;
 	}
-	
-	
 	
 }
