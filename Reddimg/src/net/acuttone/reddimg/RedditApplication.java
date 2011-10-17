@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
+// TODO: rename to ReddimgApp
 public class RedditApplication extends Application {
 
     private static RedditApplication instance;
@@ -17,6 +18,8 @@ public class RedditApplication extends Application {
 	private int screenH;
 	private ImagePrefetcher imagePrefetcher;
 
+	private RedditClient redditClient;
+
     public static RedditApplication instance() {
       return instance;
     }
@@ -25,6 +28,7 @@ public class RedditApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 		instance = this;
+		redditClient = new RedditClient();
 		linksQueue = new RedditLinkQueue();
 		loadScreenSize();
 		ImageResizer imgResizer = new ImageResizer();
@@ -59,6 +63,10 @@ public class RedditApplication extends Application {
 
 	public ImagePrefetcher getImagePrefetcher() {
 		return imagePrefetcher;
+	}
+
+	public RedditClient getRedditClient() {
+		return redditClient;
 	}
     
 }
