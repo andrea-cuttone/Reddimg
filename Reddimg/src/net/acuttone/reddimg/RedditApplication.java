@@ -2,6 +2,7 @@ package net.acuttone.reddimg;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
@@ -28,13 +29,17 @@ public class RedditApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 		instance = this;
-		redditClient = new RedditClient();
+		redditClient = new RedditClient(getCacheDir());
 		linksQueue = new RedditLinkQueue();
 		loadScreenSize();
 		ImageResizer imgResizer = new ImageResizer();
 		imageCache = new ImageCache(imgResizer, this);
 		imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
-		imagePrefetcher.start();
+		imagePrefetcher.start();		
+	}
+	
+	public SharedPreferences getSharedPrefs() {
+		return getSharedPreferences(RedditApplication.APP_NAME, MODE_PRIVATE);		
 	}
 
 	public void loadScreenSize() {

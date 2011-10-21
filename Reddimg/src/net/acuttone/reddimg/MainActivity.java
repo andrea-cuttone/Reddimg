@@ -25,7 +25,8 @@ import android.view.WindowManager;
 
 enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
-// TODO: check http://saigeethamn.blogspot.com/2010/05/image-switcher-view-android-developer.html
+// TODO: check http://saigeethamn.blogspot.com/2010/05/image-switcher-view-android-developer.html'
+// TODO: http://developer.android.com/reference/android/webkit/WebView.html
 public class MainActivity extends Activity implements OnTouchListener {
 	
 	private static final int DIALOG_CONNECTION_PROBLEM = 1;
