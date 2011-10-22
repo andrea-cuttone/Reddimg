@@ -34,7 +34,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
 
-// TODO: encrypt ALL the things
+// TODO: encrypt communication, maybe not possible yet?
 public class RedditClient {
 
 	private static final String UH_KEY = "UH";
@@ -92,7 +92,7 @@ public class RedditClient {
 	public boolean doLogin(String username, String password) {
 		boolean success = true;
 
-		HttpPost httppost = new HttpPost("http://www.reddit.com/api/login/" + username);
+		HttpPost httppost = new HttpPost("https://ssl.reddit.com/api/login/" + username);
 		CookieStore cookieStore = (CookieStore) localContext.getAttribute(ClientContext.COOKIE_STORE);
 
 		// TODO: perform logout
@@ -205,7 +205,7 @@ public class RedditClient {
 
 		public SerializableCookie(BasicClientCookie cookie){
 			this.domain = cookie.getDomain();
-			this.value =  cookie.getValue(); //new URLDecoder().decode(cookie.getValue());
+			this.value =  cookie.getValue();
 			this.name = cookie.getName();
 			this.comment = cookie.getComment();
 			this.expiryDate = cookie.getExpiryDate();
