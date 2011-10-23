@@ -3,6 +3,8 @@
   xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/loginmenuitem"
           android:title="Login" />
+    <item android:id="@+id/settingsmenuitem"
+          android:title="Settings" />
     <item android:id="@+id/upvotemenuitem"
           android:title="Upvote" />
     <item android:id="@+id/downvotemenuitem"

@@ -246,9 +246,14 @@ public class MainActivity extends Activity implements OnTouchListener {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		RedditLink currentLink = null;
+		Intent intent = null;
 		switch (item.getItemId()) {
 		case R.id.loginmenuitem:
-			Intent intent = new Intent(this, LoginActivity.class);
+			intent = new Intent(this, LoginActivity.class);
+			startActivity(intent);
+			return true;
+		case R.id.settingsmenuitem:
+			intent = new Intent(this, PrefsActivity.class);
 			startActivity(intent);
 			return true;
 		case R.id.upvotemenuitem:
