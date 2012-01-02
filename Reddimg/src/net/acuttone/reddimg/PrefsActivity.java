@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
+import android.view.Window;
+import android.view.WindowManager;
 
 public class PrefsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
@@ -18,6 +21,9 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);		
+				
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.prefs);
 		
@@ -27,12 +33,19 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	@Override
     protected void onResume() {
         super.onResume();
-        String str = getPreferences(MODE_PRIVATE).getString(SUBREDDIT_MODE_KEY, SUBREDDITMODE_FRONTPAGE);
-        subredditModePref.setSummary(str);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		String str = sp.getString(SUBREDDIT_MODE_KEY, SUBREDDITMODE_FRONTPAGE);
+		subredditModePref.setSummary(str);
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		RedditApplication.instance().getLinksQueue().initSubreddits();
+	}
 
-    @Override
+	@Override
     protected void onPause() {
         super.onPause();
         getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);    

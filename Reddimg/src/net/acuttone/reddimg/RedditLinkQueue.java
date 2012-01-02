@@ -13,6 +13,8 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 
@@ -21,21 +23,31 @@ public class RedditLinkQueue {
 	private List<RedditLink> links;
 	private List<String> lastT3List;
 	private List<String> subredditsList;
-	private int lastRequestedIndex = 0;
+	private int lastRequestedIndex;
 	
 	public RedditLinkQueue() {
-		links = new ArrayList<RedditLink>();
-		lastT3List = new ArrayList<String>();
-		subredditsList = new ArrayList<String>();
-		// TODO
-		lastT3List.add("");
-		subredditsList.add("");
-		lastT3List.add("");
-		subredditsList.add("/r/loseit");
-		lastT3List.add("");
-		subredditsList.add("/r/TheSimpsons");
+		initSubreddits();
 	}
 	
+	public synchronized void initSubreddits() {
+		links = new ArrayList<RedditLink>();
+		lastT3List = new ArrayList<String>();		
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+		String mode = sp.getString(PrefsActivity.SUBREDDIT_MODE_KEY, PrefsActivity.SUBREDDITMODE_FRONTPAGE);
+		if(PrefsActivity.SUBREDDITMODE_MINE.equals(mode)) {
+			// TODO
+		} else if(PrefsActivity.SUBREDDITMODE_MANUAL.equals(mode)) {
+			subredditsList = SubredditsPickerActivity.getSubredditsFromPref(RedditApplication.instance());
+		} else {
+			subredditsList = new ArrayList<String>();
+			subredditsList.add("");
+		} 
+		for (String s : subredditsList) {
+			lastT3List.add("");
+		}
+		lastRequestedIndex = 0;
+	}
+
 	public synchronized RedditLink get(int index) {
 		lastRequestedIndex = index;
 		if(index >= links.size()) {
@@ -61,7 +73,7 @@ public class RedditLinkQueue {
 			Log.d(RedditApplication.APP_NAME, "Fetching links from " + (subreddit.length() == 0 ? "reddit front page" : subreddit));
 			BufferedReader in = null;
 			try {
-				URLConnection connection = new URL("http://www.reddit.com" + subreddit + "/.json" + "?after=t3_" + lastT3).openConnection();
+				URLConnection connection = new URL("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3).openConnection();
 				in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 				String inputLine;
 				StringBuilder sb = new StringBuilder();
@@ -94,6 +106,9 @@ public class RedditLinkQueue {
 						Log.e(RedditApplication.APP_NAME, e.toString());
 					}
 				}
+			}
+			if(lastT3 != null && !lastT3.equals("")) {
+				lastT3List.set(i, lastT3);
 			}
 		}
 

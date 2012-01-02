@@ -1,61 +1,11 @@
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-<!-- 
-	<PreferenceCategory android:title="inline_preferences">
-
-		<CheckBoxPreference android:key="checkbox_preference"
-			android:title="title_checkbox_preference" android:summary="summary_checkbox_preference" />
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="dialog_based_preferences">
-
-		<EditTextPreference android:key="edittext_preference"
-			android:title="title_edittext_preference" android:summary="summary_edittext_preference"
-			android:dialogTitle="dialog_title_edittext_preference" />
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="launch_preferences">
-
-		<PreferenceScreen android:key="screen_preference"
-			android:title="title_screen_preference" android:summary="summary_screen_preference">
-
-			<CheckBoxPreference android:key="next_screen_checkbox_preference"
-				android:title="title_next_screen_toggle_preference" android:summary="summary_next_screen_toggle_preference" />
-
-		</PreferenceScreen>
-
-		<PreferenceScreen android:title="title_intent_preference"
-			android:summary="summary_intent_preference">
-
-			<intent android:action="android.intent.action.VIEW"
-				android:data="http://www.android.com" />
-
-		</PreferenceScreen>
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="preference_attributes">
-
-		<CheckBoxPreference android:key="parent_checkbox_preference"
-			android:title="title_parent_preference" android:summary="summary_parent_preference" />
-
-		<CheckBoxPreference android:key="child_checkbox_preference"
-			android:dependency="parent_checkbox_preference" android:layout="?android:attr/preferenceLayoutChild"
-			android:title="title_child_preference" android:summary="summary_child_preference" />
-
-	</PreferenceCategory> -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">	
 	<PreferenceCategory android:title="Subreddits">
 		<ListPreference android:entries="@array/subredditMode"
 			android:title="Subreddits" android:summary="Which subreddits to display"
 			android:key="subredditMode" android:entryValues="@array/subredditMode"></ListPreference>
 		<PreferenceScreen android:title="Edit subreddits list">
-
-			<intent android:action="android.intent.action.VIEW"
-				android:data="http://www.android.com" />
-
+			<intent android:action="android.intent.action.MAIN"
+				android:targetPackage="net.acuttone.reddimg" android:targetClass="net.acuttone.reddimg.SubredditsPickerActivity" />
 		</PreferenceScreen>
-
 	</PreferenceCategory>
-
 </PreferenceScreen>
