@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -24,6 +23,7 @@ public class RedditLinkQueue {
 	private List<String> lastT3List;
 	private List<String> subredditsList;
 	private int lastRequestedIndex;
+	private int nextSubredditIndex;
 	
 	public RedditLinkQueue() {
 		initSubreddits();
@@ -31,21 +31,26 @@ public class RedditLinkQueue {
 	
 	public synchronized void initSubreddits() {
 		links = new ArrayList<RedditLink>();
-		lastT3List = new ArrayList<String>();		
+		lastT3List = new ArrayList<String>();
+		subredditsList = new ArrayList<String>();
+
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
 		String mode = sp.getString(PrefsActivity.SUBREDDIT_MODE_KEY, PrefsActivity.SUBREDDITMODE_FRONTPAGE);
-		if(PrefsActivity.SUBREDDITMODE_MINE.equals(mode)) {
-			// TODO
-		} else if(PrefsActivity.SUBREDDITMODE_MANUAL.equals(mode)) {
+		if (PrefsActivity.SUBREDDITMODE_MINE.equals(mode) &&
+			RedditApplication.instance().getRedditClient().isLoggedIn()) {
+			subredditsList = RedditApplication.instance().getRedditClient().getMySubreddits();
+		} else if (PrefsActivity.SUBREDDITMODE_MANUAL.equals(mode)) {
 			subredditsList = SubredditsPickerActivity.getSubredditsFromPref(RedditApplication.instance());
-		} else {
-			subredditsList = new ArrayList<String>();
+		}
+
+		if (subredditsList.isEmpty()) {
 			subredditsList.add("");
-		} 
+		}
 		for (String s : subredditsList) {
 			lastT3List.add("");
 		}
 		lastRequestedIndex = 0;
+		nextSubredditIndex = 0;
 	}
 
 	public synchronized RedditLink get(int index) {
@@ -67,52 +72,53 @@ public class RedditLinkQueue {
 
 	private void getNewLinks() {
 		List<RedditLink> newLinks = new ArrayList<RedditLink>();
-		for (int i = 0; i < subredditsList.size(); i++) {
-			String subreddit = subredditsList.get(i);
-			String lastT3 = lastT3List.get(i);
-			Log.d(RedditApplication.APP_NAME, "Fetching links from " + (subreddit.length() == 0 ? "reddit front page" : subreddit));
-			BufferedReader in = null;
-			try {
-				URLConnection connection = new URL("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3).openConnection();
-				in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-				String inputLine;
-				StringBuilder sb = new StringBuilder();
-				while ((inputLine = in.readLine()) != null)
-					sb.append(inputLine);
-				in.close();
+		String subreddit = subredditsList.get(nextSubredditIndex);
+		String lastT3 = lastT3List.get(nextSubredditIndex);
+		Log.d(RedditApplication.APP_NAME, "Fetching links from " + (subreddit.length() == 0 ? "reddit front page" : subreddit));
+		BufferedReader in = null;
+		try {
+			URLConnection connection = new URL("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3).openConnection();
+			in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			String inputLine;
+			StringBuilder sb = new StringBuilder();
+			while ((inputLine = in.readLine()) != null)
+				sb.append(inputLine);
+			in.close();
 
-				JSONObject jsonObject = new JSONObject(sb.toString());
-				JSONObject data = (JSONObject) jsonObject.get("data");
-				JSONArray children = (JSONArray) data.get("children");
-				for (int j = 0; j < children.length(); j++) {
-					JSONObject obj = (JSONObject) children.get(j);
-					JSONObject cData = (JSONObject) obj.get("data");
-					String url = (String) cData.get("url");
-					String title = Html.fromHtml((String) cData.get("title")).toString();
-					lastT3 = (String) cData.get("id");
-					if (isUrlValid(url)) {
-						RedditLink newRedditLink = new RedditLink(lastT3, url, title);
-						newLinks.add(newRedditLink);
-						Log.d(RedditApplication.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
-					}
-				}
-			} catch (Exception e) {
-				Log.e(RedditApplication.APP_NAME, e.toString());
-			} finally {
-				if(in != null) {
-					try {
-						in.close();
-					} catch (IOException e) {
-						Log.e(RedditApplication.APP_NAME, e.toString());
-					}
+			JSONObject jsonObject = new JSONObject(sb.toString());
+			JSONObject data = (JSONObject) jsonObject.get("data");
+			JSONArray children = (JSONArray) data.get("children");
+			for (int j = 0; j < children.length(); j++) {
+				JSONObject obj = (JSONObject) children.get(j);
+				JSONObject cData = (JSONObject) obj.get("data");
+				String url = (String) cData.get("url");
+				String title = Html.fromHtml((String) cData.get("title")).toString();
+				lastT3 = (String) cData.get("id");
+				if (isUrlValid(url)) {
+					RedditLink newRedditLink = new RedditLink(lastT3, url, title);
+					newLinks.add(newRedditLink);
+					Log.d(RedditApplication.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 				}
 			}
-			if(lastT3 != null && !lastT3.equals("")) {
-				lastT3List.set(i, lastT3);
+		} catch (Exception e) {
+			Log.e(RedditApplication.APP_NAME, e.toString());
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					Log.e(RedditApplication.APP_NAME, e.toString());
+				}
 			}
 		}
+		if (lastT3 != null && !lastT3.equals("")) {
+			lastT3List.set(nextSubredditIndex, lastT3);
+		}
 
-		Collections.shuffle(newLinks);
+		nextSubredditIndex++;
+		if (nextSubredditIndex >= subredditsList.size()) {
+			nextSubredditIndex = 0;
+		}
 
 		synchronized (links) {
 			for (RedditLink l : newLinks) {

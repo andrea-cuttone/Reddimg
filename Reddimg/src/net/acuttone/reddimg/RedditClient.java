@@ -14,9 +14,11 @@ import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.Cookie;
@@ -32,6 +34,7 @@ import org.json.JSONObject;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.text.Html;
 import android.util.Log;
 
 // TODO: encrypt communication, maybe not possible yet?
@@ -160,7 +163,7 @@ public class RedditClient {
 	}
 
 	public boolean vote(String id, String vote) {
-		if (httpclient == null || localContext == null || "".equals(uh)) {
+		if(isLoggedIn() == false) {
 			Log.e(RedditApplication.APP_NAME, "error on vote");
 			return false;
 		}
@@ -186,6 +189,43 @@ public class RedditClient {
 			Log.e(RedditApplication.APP_NAME, "error on vote: " + exc.toString());
 			return false;
 		}
+	}
+
+	public boolean isLoggedIn() {
+		if (httpclient == null || localContext == null || "".equals(uh)) {			
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	public List<String> getMySubreddits() {
+		List<String> subreddits = new ArrayList<String>();
+
+		if (isLoggedIn() == false) {
+			Log.e(RedditApplication.APP_NAME, "You must be logged in to retrieve your subreddits");
+			return subreddits;
+		}
+
+		try {
+			HttpGet httpget = new HttpGet("http://www.reddit.com/reddits/mine.json");
+			HttpResponse response = httpclient.execute(httpget, localContext);
+			HttpEntity entity = response.getEntity();
+			String result = EntityUtils.toString(entity);
+			JSONObject jsonObject = new JSONObject(result);
+			JSONObject data = (JSONObject) jsonObject.get("data");
+			JSONArray children = (JSONArray) data.get("children");
+			for (int j = 0; j < children.length(); j++) {
+				JSONObject obj = (JSONObject) children.get(j);
+				JSONObject cData = (JSONObject) obj.get("data");
+				String url = (String) cData.get("url");	
+				subreddits.add(url);
+			}
+		} catch (Exception e) {
+			Log.e(RedditApplication.APP_NAME, "Error while retrieving subreddits: " + e.toString());
+		}
+
+		return subreddits;
 	}
 
 	private static class SerializableCookie implements Serializable {
