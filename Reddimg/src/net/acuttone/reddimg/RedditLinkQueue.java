@@ -94,9 +94,11 @@ public class RedditLinkQueue {
 				String url = (String) cData.get("url");
 				String commentUrl = "http://www.reddit.com" + cData.get("permalink");
 				String title = Html.fromHtml((String) cData.get("title")).toString();
+				String author = (String) cData.get("author");
+				int score = cData.getInt("score");				
 				lastT3 = (String) cData.get("id");
 				if (isUrlValid(url)) {
-					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title);
+					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, subreddit, score);
 					newLinks.add(newRedditLink);
 					Log.d(RedditApplication.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 				}

@@ -18,16 +18,16 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	public final static String SUBREDDITMODE_MANUAL = "Manual selection";
     
 	private ListPreference subredditModePref;
+	private boolean subredditsChanged;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);		
-				
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.prefs);
-		
 		subredditModePref = (ListPreference) findPreference(SUBREDDIT_MODE_KEY);
+		subredditsChanged = false;
 	}
 	
 	@Override
@@ -42,7 +42,9 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	@Override
 	protected void onStop() {
 		super.onStop();
-		RedditApplication.instance().getLinksQueue().initSubreddits();
+		if(subredditsChanged) {
+			RedditApplication.instance().getLinksQueue().initSubreddits();
+		}
 	}
 
 	@Override
@@ -54,6 +56,10 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 	    Preference pref = findPreference(key);
+	    
+	    if(SUBREDDIT_MODE_KEY.equals(key) || SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
+	    	subredditsChanged = true;
+	    }
 
 	    if (pref instanceof ListPreference) {
 	        ListPreference listPref = (ListPreference) pref;

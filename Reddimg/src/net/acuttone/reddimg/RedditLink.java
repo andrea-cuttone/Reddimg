@@ -7,12 +7,18 @@ public class RedditLink {
 	private String url;
 	private String id;
 	private String commentUrl;
+	private int score;
+	private String subreddit;
+	private String author;
 
-	public RedditLink(String id, String url, String commentUrl, String title) {
+	public RedditLink(String id, String url, String commentUrl, String title, String author, String subreddit, int score) {
 		this.id = id;
 		this.title = title;
 		this.url = url;
 		this.commentUrl = commentUrl;
+		this.author = author;
+		this.subreddit = subreddit;
+		this.score = score;
 	}
 	
 	public String getId() {
@@ -29,6 +35,18 @@ public class RedditLink {
 	
 	public String getCommentUrl() {
 		return commentUrl;
+	}
+	
+	public int getScore() {
+		return score;
+	}
+
+	public String getSubreddit() {
+		return subreddit;
+	}
+
+	public String getAuthor() {
+		return author;
 	}
 	
 	@Override
@@ -60,5 +78,5 @@ public class RedditLink {
 			return false;
 		return true;
 	}
-	
+
 }
