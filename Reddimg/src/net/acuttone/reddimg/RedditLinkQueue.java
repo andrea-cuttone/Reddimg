@@ -92,10 +92,11 @@ public class RedditLinkQueue {
 				JSONObject obj = (JSONObject) children.get(j);
 				JSONObject cData = (JSONObject) obj.get("data");
 				String url = (String) cData.get("url");
+				String commentUrl = "http://www.reddit.com" + cData.get("permalink");
 				String title = Html.fromHtml((String) cData.get("title")).toString();
 				lastT3 = (String) cData.get("id");
 				if (isUrlValid(url)) {
-					RedditLink newRedditLink = new RedditLink(lastT3, url, title);
+					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title);
 					newLinks.add(newRedditLink);
 					Log.d(RedditApplication.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 				}

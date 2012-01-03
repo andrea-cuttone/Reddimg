@@ -6,11 +6,13 @@ public class RedditLink {
 	public String title;
 	private String url;
 	private String id;
+	private String commentUrl;
 
-	public RedditLink(String id, String url, String title) {
+	public RedditLink(String id, String url, String commentUrl, String title) {
 		this.id = id;
 		this.title = title;
 		this.url = url;
+		this.commentUrl = commentUrl;
 	}
 	
 	public String getId() {
@@ -25,6 +27,10 @@ public class RedditLink {
 		return url;
 	}
 	
+	public String getCommentUrl() {
+		return commentUrl;
+	}
+	
 	@Override
 	public String toString() {
 		return getTitle() + " - " + getUrl();
@@ -34,7 +40,7 @@ public class RedditLink {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		result = prime * result + ((commentUrl == null) ? 0 : commentUrl.hashCode());
 		return result;
 	}
 
@@ -47,10 +53,10 @@ public class RedditLink {
 		if (getClass() != obj.getClass())
 			return false;
 		RedditLink other = (RedditLink) obj;
-		if (url == null) {
-			if (other.url != null)
+		if (commentUrl == null) {
+			if (other.commentUrl != null)
 				return false;
-		} else if (!url.equals(other.url))
+		} else if (!commentUrl.equals(other.commentUrl))
 			return false;
 		return true;
 	}

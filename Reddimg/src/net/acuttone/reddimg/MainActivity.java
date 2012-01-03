@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -263,6 +264,16 @@ public class MainActivity extends Activity implements OnTouchListener {
 		case R.id.downvotemenuitem:
 			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
 			RedditApplication.instance().getRedditClient().vote(currentLink.getId(), RedditClient.DOWNVOTE);
+			return true;
+		case R.id.openimgmenuitem:
+			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
+			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentLink.getUrl()));
+			startActivity(intent);
+			return true;
+		case R.id.opencommentsmenuitem:
+			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
+			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentLink.getCommentUrl()));
+			startActivity(intent);
 			return true;
 		default:
 			return super.onContextItemSelected(item);

@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/loginmenuitem"
-          android:title="Login" />
-    <item android:id="@+id/settingsmenuitem"
-          android:title="Settings" />
     <item android:id="@+id/upvotemenuitem"
           android:title="Upvote" />
     <item android:id="@+id/downvotemenuitem"
           android:title="Downvote" />
+    <item android:id="@+id/openimgmenuitem"
+          android:title="Open in browser" />
+    <item android:id="@+id/opencommentsmenuitem"
+          android:title="Show comments" />
+	<item android:id="@+id/loginmenuitem"
+          android:title="Login" />
+    <item android:id="@+id/settingsmenuitem"
+          android:title="Settings" />    
 </menu>
