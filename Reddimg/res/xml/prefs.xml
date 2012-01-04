@@ -6,13 +6,13 @@
 			android:summary="Which subreddits to display"
 			android:key="subredditMode" 
 			android:entryValues="@array/subredditMode"></ListPreference>
-		<PreferenceScreen android:title="Edit subreddits list">
+		<PreferenceScreen android:title="Edit subreddits list" android:summary="only for Manual selection mode">
 			<intent android:action="android.intent.action.MAIN"
 				android:targetPackage="net.acuttone.reddimg" 
 				android:targetClass="net.acuttone.reddimg.SubredditsPickerActivity" />
 		</PreferenceScreen>
 	</PreferenceCategory>
-	<PreferenceCategory android:title="Title display">
+	<PreferenceCategory android:title="Title format">
 		 <CheckBoxPreference
                         android:title="Show score"
                         android:defaultValue="false"

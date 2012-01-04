@@ -34,7 +34,7 @@ public class LinkRenderer {
 		}
 		sb.append(link.getTitle());
 		if(sp.getBoolean("showAuthor", false)) {
-			sb.append(" - by " + link.getAuthor());
+			sb.append(" | by " + link.getAuthor());
 		}		
 		if(sp.getBoolean("showSubreddit", false)) {
 			sb.append(" in " + link.getSubreddit());
