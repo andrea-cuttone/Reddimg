@@ -23,11 +23,10 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 enum ScrollingState { NO_SCROLL, SCROLL_LEFT, SCROLL_RIGHT };
 
-// TODO: check http://saigeethamn.blogspot.com/2010/05/image-switcher-view-android-developer.html'
-// TODO: http://developer.android.com/reference/android/webkit/WebView.html
 public class MainActivity extends Activity implements OnTouchListener {
 	
 	private static final int DIALOG_CONNECTION_PROBLEM = 1;
@@ -200,8 +199,12 @@ public class MainActivity extends Activity implements OnTouchListener {
 					viewBitmap = result;
 					view.invalidate();
 				} else {
-					RedditApplication.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.PAUSED);
-					showDialog(DIALOG_CONNECTION_PROBLEM);
+					if(isConnectionActive() == false) {
+						RedditApplication.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.PAUSED);
+						showDialog(DIALOG_CONNECTION_PROBLEM);
+					} else {
+						Toast.makeText(MainActivity.this, "Error on loading image", Toast.LENGTH_SHORT);
+					}
 				}
 			}
 			

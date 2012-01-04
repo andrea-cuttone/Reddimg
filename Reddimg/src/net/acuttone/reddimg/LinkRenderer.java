@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 public class LinkRenderer {
 
@@ -41,7 +42,13 @@ public class LinkRenderer {
 		int width = RedditApplication.instance().getScreenW() - 2 * TITLE_SIDE_MARGIN;
 		List<String> lines = TextWrapper.getWrappedLines(sb.toString(), width, textPaint);		
 		int imgYpos = TITLE_TOP + (lines.size()-1) * TEXT_HEIGHT + TITLE_TO_IMG_MARGIN;
-		Bitmap currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);
+		Bitmap currentImg = null;
+		try {
+			currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);
+		} catch(Exception e) {
+			Log.e(RedditApplication.APP_NAME, e.toString());
+			return null;
+		}
 		Canvas canvas = new Canvas(currentImg);
 		TextWrapper.drawTextLines(canvas, lines, TITLE_SIDE_MARGIN, TITLE_TOP, textPaint);
 		canvas.drawBitmap(image, 0, imgYpos, null);
