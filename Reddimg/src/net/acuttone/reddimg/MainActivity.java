@@ -1,5 +1,8 @@
 package net.acuttone.reddimg;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,7 +12,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -32,7 +38,9 @@ public class MainActivity extends Activity implements OnTouchListener {
 	private static final int DIALOG_CONNECTION_PROBLEM = 1;
 	private static final String CONNECTION_PROBLEM_TEXT = "Oops! There seem to be a problem with the connection";
 	private static final double SCROLL_MARGIN = 5.;
-
+	private static final int NAVIGATION_FADE_TIME = 50;
+	
+	private int navigationArrowsCounter;
 	private int currentLinkIndex;
 	private float startY;
 	private float currentY;
@@ -43,6 +51,8 @@ public class MainActivity extends Activity implements OnTouchListener {
 	private LinkRenderer linkRenderer;
 	private ProgressDialog progressDlg;
 	private AsyncTask<Integer, String, Bitmap> loadImgTask;
+	private Timer timer;
+	private Bitmap leftArrowBitmap, rightArrowBitmap;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -50,11 +60,15 @@ public class MainActivity extends Activity implements OnTouchListener {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		
+		navigationArrowsCounter = 0;
 		yPos = 0;
 		scrollingState = ScrollingState.NO_SCROLL;
 		currentLinkIndex = 0;
 		RedditApplication.instance().loadScreenSize();
 		linkRenderer = new LinkRenderer();
+		timer = new Timer();
+		leftArrowBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.left_arrow);
+		rightArrowBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.right_arrow);
 		view = new SlideshowView(getApplicationContext());
 		setContentView(view);
 		view.setOnTouchListener(this);
@@ -197,6 +211,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 						viewBitmap.recycle();
 					}
 					viewBitmap = result;
+					navigationArrowsCounter = NAVIGATION_FADE_TIME;
 					view.invalidate();
 				} else {
 					if(isConnectionActive() == false) {
@@ -302,6 +317,25 @@ public class MainActivity extends Activity implements OnTouchListener {
 				yPos = - currentY + startY;
 			}
 			canvas.drawBitmap(viewBitmap, 0, yPos + currentY - startY, null);
+			
+			if(navigationArrowsCounter > 0) {
+				Paint paint = new Paint();
+				paint.setAlpha(255 * navigationArrowsCounter / NAVIGATION_FADE_TIME);
+				canvas.drawBitmap(leftArrowBitmap, 5, 
+						  RedditApplication.instance().getScreenH() / 2 - leftArrowBitmap.getHeight() / 2,
+						  paint);		
+				canvas.drawBitmap(rightArrowBitmap, 
+								  RedditApplication.instance().getScreenW() - rightArrowBitmap.getWidth(), 
+								  RedditApplication.instance().getScreenH() / 2 - rightArrowBitmap.getHeight() / 2,
+								  paint);
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						postInvalidate();
+					}
+				}, 5);
+				navigationArrowsCounter--;
+			}
 		}
 
 	}
