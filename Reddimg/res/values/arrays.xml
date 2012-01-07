@@ -5,4 +5,14 @@
         <item>My subreddits (only logged users)</item>
         <item>Manual selection</item>
     </array>
+    <string-array name="titleSizeKeys">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string-array name="titleSizeValues">
+        <item>14</item>
+        <item>22</item>
+        <item>32</item>
+    </string-array>
 </resources>

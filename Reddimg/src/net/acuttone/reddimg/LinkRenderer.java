@@ -12,17 +12,13 @@ import android.util.Log;
 
 public class LinkRenderer {
 
-	private Paint textPaint;
-
 	private static final int TITLE_SIDE_MARGIN = 5;
-	private static final int TITLE_TOP = 14;
-	private static final int TEXT_HEIGHT = 16;
-	private static final int TITLE_TO_IMG_MARGIN = 10;
+
+	private Paint textPaint;
 	
 	public LinkRenderer() {
 		textPaint = new Paint();
-		textPaint.setColor(Color.WHITE);
-		textPaint.setTextSize(14.0f);
+		textPaint.setColor(Color.WHITE);		
 		textPaint.setAntiAlias(true);
 	}
 	
@@ -38,10 +34,12 @@ public class LinkRenderer {
 		}		
 		if(sp.getBoolean("showSubreddit", false)) {
 			sb.append(" in " + link.getSubreddit());
-		}			
+		}	
+		int textSize = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "14"));
+		textPaint.setTextSize(textSize);
 		int width = RedditApplication.instance().getScreenW() - 2 * TITLE_SIDE_MARGIN;
 		List<String> lines = TextWrapper.getWrappedLines(sb.toString(), width, textPaint);		
-		int imgYpos = TITLE_TOP + (lines.size()-1) * TEXT_HEIGHT + TITLE_TO_IMG_MARGIN;
+		int imgYpos = textSize + (lines.size()-1) * textSize + textSize / 2;
 		Bitmap currentImg = null;
 		try {
 			currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);
@@ -50,7 +48,7 @@ public class LinkRenderer {
 			return null;
 		}
 		Canvas canvas = new Canvas(currentImg);
-		TextWrapper.drawTextLines(canvas, lines, TITLE_SIDE_MARGIN, TITLE_TOP, textPaint);
+		TextWrapper.drawTextLines(canvas, lines, TITLE_SIDE_MARGIN, textSize, textPaint);
 		canvas.drawBitmap(image, 0, imgYpos, null);
 		return currentImg;
 	}

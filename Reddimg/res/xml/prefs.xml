@@ -25,5 +25,10 @@
                         android:title="Show subreddit"
                         android:defaultValue="false"
                         android:key="showSubreddit" />
+         <ListPreference 
+			android:entries="@array/titleSizeKeys"
+			android:title="Size" 
+			android:key="titleSize" 
+			android:entryValues="@array/titleSizeValues"></ListPreference> 
 	</PreferenceCategory>	
 </PreferenceScreen>

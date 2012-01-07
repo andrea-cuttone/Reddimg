@@ -6,18 +6,19 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceManager;
 import android.view.Window;
 import android.view.WindowManager;
 
 public class PrefsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
+	public static final String TITLE_SIZE_KEY = "titleSize";
 	public static final String SUBREDDIT_MODE_KEY = "subredditMode";
 	public final static String SUBREDDITMODE_FRONTPAGE = "Front page";
 	public final static String SUBREDDITMODE_MINE = "My subreddits (only logged users)";
 	public final static String SUBREDDITMODE_MANUAL = "Manual selection";
     
 	private ListPreference subredditModePref;
+	private ListPreference titleSizePref;
 	private boolean subredditsChanged;
 
 	@Override
@@ -27,15 +28,15 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.prefs);
 		subredditModePref = (ListPreference) findPreference(SUBREDDIT_MODE_KEY);
+		titleSizePref = (ListPreference) findPreference(TITLE_SIZE_KEY);
 		subredditsChanged = false;
 	}
 	
 	@Override
     protected void onResume() {
         super.onResume();
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		String str = sp.getString(SUBREDDIT_MODE_KEY, SUBREDDITMODE_FRONTPAGE);
-		subredditModePref.setSummary(str);
+		subredditModePref.setSummary(subredditModePref.getEntry());
+		titleSizePref.setSummary(titleSizePref.getEntry());
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 	
