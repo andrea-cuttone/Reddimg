@@ -261,6 +261,23 @@ public class MainActivity extends Activity implements OnTouchListener {
 		inflater.inflate(R.menu.mainmenu, menu);
 		return true;
 	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem loginItem = menu.findItem(R.id.loginmenuitem);
+		MenuItem upvoteItem = menu.findItem(R.id.upvotemenuitem);
+		MenuItem downvoteItem = menu.findItem(R.id.downvotemenuitem);
+		if(RedditApplication.instance().getRedditClient().isLoggedIn()) {
+			loginItem.setTitle("Logout");
+			upvoteItem.setEnabled(true);
+			downvoteItem.setEnabled(true);
+		} else {
+			loginItem.setTitle("Login");
+			upvoteItem.setEnabled(false);
+			downvoteItem.setEnabled(false);
+		}
+		return super.onPrepareOptionsMenu(menu);
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -268,8 +285,12 @@ public class MainActivity extends Activity implements OnTouchListener {
 		Intent intent = null;
 		switch (item.getItemId()) {
 		case R.id.loginmenuitem:
-			intent = new Intent(this, LoginActivity.class);
-			startActivity(intent);
+			if (RedditApplication.instance().getRedditClient().isLoggedIn()) {
+				RedditApplication.instance().getRedditClient().doLogout();
+			} else {
+				intent = new Intent(this, LoginActivity.class);
+				startActivity(intent);
+			}
 			return true;
 		case R.id.settingsmenuitem:
 			intent = new Intent(this, PrefsActivity.class);

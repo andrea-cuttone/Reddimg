@@ -14,7 +14,6 @@ import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -34,7 +33,6 @@ import org.json.JSONObject;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.text.Html;
 import android.util.Log;
 
 // TODO: encrypt communication, maybe not possible yet?
@@ -98,11 +96,7 @@ public class RedditClient {
 		HttpPost httppost = new HttpPost("https://ssl.reddit.com/api/login/" + username);
 		CookieStore cookieStore = (CookieStore) localContext.getAttribute(ClientContext.COOKIE_STORE);
 
-		// TODO: perform logout
-		cookieStore.clear();
-		for (File cookieFile : cookiesCacheDir.listFiles()) {
-			cookieFile.delete();
-		}
+		doLogout();
 		
 		try {
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
@@ -160,6 +154,24 @@ public class RedditClient {
 				}
 			}
 		}
+	}
+	
+	public void doLogout() {
+		SharedPreferences sharedPrefs = RedditApplication.instance().getSharedPrefs();
+		Editor edit = sharedPrefs.edit();
+		edit.remove(UH_KEY);
+		edit.commit();
+		uh = "";
+		CookieStore cookieStore = (CookieStore) localContext.getAttribute(ClientContext.COOKIE_STORE);
+		cookieStore.clear();
+		for (File cookieFile : cookiesCacheDir.listFiles()) {
+			cookieFile.delete();
+		}
+		httpclient = new DefaultHttpClient();
+		cookieStore = new BasicCookieStore();
+		localContext = new BasicHttpContext();
+		localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+		Log.d(RedditApplication.APP_NAME, "Logout completed");
 	}
 
 	public boolean vote(String id, String vote) {
