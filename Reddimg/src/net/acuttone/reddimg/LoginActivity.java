@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +18,8 @@ import android.widget.EditText;
 
 public class LoginActivity extends Activity {
 
+	private static final String PREF_USERNAME_KEY = "USERNAME";
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -23,6 +27,9 @@ public class LoginActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.login);
+		SharedPreferences sharedPrefs = RedditApplication.instance().getSharedPrefs();
+		EditText etUsername = (EditText) findViewById(R.id.etUsername);
+		etUsername.setText(sharedPrefs.getString(PREF_USERNAME_KEY, ""));
 		Button button = (Button) findViewById(R.id.btnLogin);
 		button.setOnClickListener(new OnClickListener() {
 
@@ -35,7 +42,6 @@ public class LoginActivity extends Activity {
 	}
 
 	class LoginTask extends AsyncTask<Void, Void, Boolean> {
-
 		private ProgressDialog progressDialog;
 
 		@Override
@@ -51,6 +57,12 @@ public class LoginActivity extends Activity {
 			String username = etUsername.getText().toString();
 			String password = etPassword.getText().toString();
 			boolean success = RedditApplication.instance().getRedditClient().doLogin(username, password);
+			if(success) {
+				SharedPreferences sharedPrefs = RedditApplication.instance().getSharedPrefs();
+				Editor editor = sharedPrefs.edit();
+				editor.putString(PREF_USERNAME_KEY, username);
+				editor.commit();
+			}
 			return success;
 		}
 
@@ -60,7 +72,7 @@ public class LoginActivity extends Activity {
 			progressDialog.dismiss();
 			AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
 			alertDialog.setTitle("Reddimg");
-			alertDialog.setMessage(result ? "Logon successful" : "Logon failed");
+			alertDialog.setMessage(result ? "Login successful" : "Login failed");
 			alertDialog.setCancelable(false);
 			alertDialog.setButton(Dialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
 
