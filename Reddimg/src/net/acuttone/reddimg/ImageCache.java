@@ -17,25 +17,26 @@ import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 // TODO: split into memcache and diskcache
 public class ImageCache {
-
-	private static final int MAX_IMAGE_SIZE = 1000000;
+	private static final int MEGABYTE = 1000000;
+	private static final int MAX_IMAGE_SIZE = 1 * MEGABYTE;
+	private static final long MAX_INTERNAL_CACHE_SIZE = 2 * MEGABYTE;
 	public static final int IN_MEM_CACHE_SIZE = 3;
-	private static final long MAX_SD_CACHE_SIZE = 20971520;
-	private static final long MAX_INTERNAL_CACHE_SIZE = 2097152;
 	private static final String FILE_PREFIX = "__RDIMG_";
 	
 	private File reddimgDir;
 	private LinkedHashMap<String, Bitmap> inMemCache;
 	private ImageResizer imgResizer;
-	private long diskCacheSize;
 	private TreeSet<File> diskCacheFiles;
-
+	private boolean useSD;
+	
 	public ImageCache(ImageResizer imgResizer, Context context) {
 		this.imgResizer = imgResizer;
 		initDiskCache(context);
@@ -44,11 +45,13 @@ public class ImageCache {
 
 	private void initDiskCache(Context context) {
 		reddimgDir = context.getExternalCacheDir();
-		diskCacheSize = MAX_SD_CACHE_SIZE;
 		if(reddimgDir == null) {
 			reddimgDir = context.getCacheDir();
-			diskCacheSize = MAX_INTERNAL_CACHE_SIZE;
+			useSD = false;
+		} else {
+			useSD = true;
 		}
+		
 		diskCacheFiles = new TreeSet<File>(new Comparator<File>() {
 
 			@Override
@@ -62,7 +65,7 @@ public class ImageCache {
 				diskCacheFiles.add(f);
 			}
 		}
-		Log.d(RedditApplication.APP_NAME, "Cache dir : " + reddimgDir.getAbsolutePath() + " [" + diskCacheSize + "]");
+		Log.d(RedditApplication.APP_NAME, "Cache dir : " + reddimgDir.getAbsolutePath());
 	}
 
 	public Bitmap getFromMem(String url) {
@@ -185,7 +188,8 @@ public class ImageCache {
 			totSize += f.length();
 		}
 
-		while(totSize > diskCacheSize && diskCacheFiles.size() > 0) {
+		long cacheSize = getCacheSize();
+		while(totSize > cacheSize && diskCacheFiles.size() > 0) {
 			File oldest = diskCacheFiles.first();
 			totSize -= oldest.length();
 			diskCacheFiles.remove(oldest);
@@ -198,7 +202,17 @@ public class ImageCache {
 			}
 		}
 		
-		return totSize < diskCacheSize;
+		return totSize < cacheSize;
+	}
+
+	private long getCacheSize() {		
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+		if(useSD) {
+			int size = Integer.parseInt(sp.getString(PrefsActivity.SD_CACHE_SIZE_KEY, PrefsActivity.DEFAULT_SD_CACHE_SIZE));
+			return size * MEGABYTE;
+		} else {
+			return MAX_INTERNAL_CACHE_SIZE;
+		}
 	}
 
 	private void storeInMem(String url, Bitmap bitmap) {

@@ -1,6 +1,7 @@
 package net.acuttone.reddimg;
 
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -8,9 +9,12 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 public class PrefsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
+	public static final String DEFAULT_SD_CACHE_SIZE = "10";
+	public final static String SD_CACHE_SIZE_KEY = "sd_cache_size";
 	public static final String TITLE_SIZE_KEY = "titleSize";
 	public static final String SUBREDDIT_MODE_KEY = "subredditMode";
 	public final static String SUBREDDITMODE_FRONTPAGE = "Front page";
@@ -60,6 +64,15 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	    
 	    if(SUBREDDIT_MODE_KEY.equals(key) || SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
 	    	subredditsChanged = true;
+	    }
+	    
+	    if(SD_CACHE_SIZE_KEY.equals(key)) {
+	    	int size = Integer.parseInt(sharedPreferences.getString(key, DEFAULT_SD_CACHE_SIZE));
+	    	if(size < 1) {
+	    		Editor editor = sharedPreferences.edit();
+	    		editor.putString(key, "1");
+	    		editor.commit();
+	    	}
 	    }
 
 	    if (pref instanceof ListPreference) {

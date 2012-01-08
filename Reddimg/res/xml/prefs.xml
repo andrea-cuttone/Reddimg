@@ -27,8 +27,15 @@
                         android:key="showSubreddit" />
          <ListPreference 
 			android:entries="@array/titleSizeKeys"
-			android:title="Size" 
+			android:title="Text size" 
 			android:key="titleSize" 
 			android:entryValues="@array/titleSizeValues"></ListPreference> 
-	</PreferenceCategory>	
+	</PreferenceCategory>
+	<PreferenceCategory android:title="Cache">
+			<EditTextPreference android:key="sd_cache_size"
+        						android:title="SD cache size" 
+        						android:defaultValue="10"
+        						android:inputType="number"
+        						android:maxLength="4" /> 
+	</PreferenceCategory>
 </PreferenceScreen>
