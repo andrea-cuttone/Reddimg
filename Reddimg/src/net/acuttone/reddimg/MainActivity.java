@@ -175,7 +175,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 
 					currentLink = RedditApplication.instance().getLinksQueue().get(index);
 					if (currentLink != null) {
-						publishProgress("Loading " + currentLink.getUrl());
+						publishProgress("Loading \"" + currentLink.getTitle() + "\" [" + currentLink.getUrl() + "]");
 						image = RedditApplication.instance().getImageCache().getFromMem(currentLink.getUrl());
 						// make a copy to avoid that the cached instance is cleared
 						if(image != null) {
