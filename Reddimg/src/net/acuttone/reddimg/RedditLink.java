@@ -2,7 +2,6 @@ package net.acuttone.reddimg;
 
 
 public class RedditLink {
-
 	public String title;
 	private String url;
 	private String id;
@@ -10,8 +9,9 @@ public class RedditLink {
 	private int score;
 	private String subreddit;
 	private String author;
+	private String voteStatus;
 
-	public RedditLink(String id, String url, String commentUrl, String title, String author, String subreddit, int score) {
+	public RedditLink(String id, String url, String commentUrl, String title, String author, String subreddit, int score, Boolean voteStatus) {
 		this.id = id;
 		this.title = title;
 		this.url = url;
@@ -19,6 +19,13 @@ public class RedditLink {
 		this.author = author;
 		this.subreddit = subreddit;
 		this.score = score;
+		if(voteStatus == null) {
+			this.voteStatus = RedditClient.NO_VOTE;
+		} else if(voteStatus == true) {
+			this.voteStatus = RedditClient.UPVOTE;
+		} else if(voteStatus == false) {
+			this.voteStatus = RedditClient.DOWNVOTE;
+		}
 	}
 	
 	public String getId() {
@@ -47,6 +54,14 @@ public class RedditLink {
 
 	public String getAuthor() {
 		return author;
+	}
+	
+	public String getVoteStatus() {
+		return voteStatus;
+	}
+	
+	public void setVoteStatus(String voteStatus) {
+		this.voteStatus = voteStatus;
 	}
 	
 	@Override

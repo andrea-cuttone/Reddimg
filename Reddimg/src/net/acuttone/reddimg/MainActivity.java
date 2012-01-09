@@ -298,11 +298,13 @@ public class MainActivity extends Activity implements OnTouchListener {
 			return true;
 		case R.id.upvotemenuitem:
 			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
-			RedditApplication.instance().getRedditClient().vote(currentLink.getId(), RedditClient.UPVOTE);
+			RedditApplication.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
+			loadImage();
 			return true;
 		case R.id.downvotemenuitem:
 			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
-			RedditApplication.instance().getRedditClient().vote(currentLink.getId(), RedditClient.DOWNVOTE);
+			RedditApplication.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
+			loadImage();
 			return true;
 		case R.id.openimgmenuitem:
 			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);

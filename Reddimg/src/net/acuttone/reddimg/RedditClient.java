@@ -1,12 +1,17 @@
 package net.acuttone.reddimg;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +38,7 @@ import org.json.JSONObject;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.text.Html;
 import android.util.Log;
 
 // TODO: encrypt communication, maybe not possible yet?
@@ -42,7 +48,7 @@ public class RedditClient {
 
 	public final static String UPVOTE = "1";
 	public final static String DOWNVOTE = "-1";
-	public final static String RESCIND = "0";
+	public final static String NO_VOTE = "0";
 	
 	private HttpClient httpclient;
 	private String uh;
@@ -95,9 +101,7 @@ public class RedditClient {
 
 		HttpPost httppost = new HttpPost("https://ssl.reddit.com/api/login/" + username);
 		CookieStore cookieStore = (CookieStore) localContext.getAttribute(ClientContext.COOKIE_STORE);
-
-		doLogout();
-		
+		cookieStore.clear();
 		try {
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
 			nameValuePairs.add(new BasicNameValuePair("user", username));
@@ -125,6 +129,64 @@ public class RedditClient {
 		}
 
 		return success;
+	}
+	
+	public List<RedditLink> getLinks(String subreddit, String lastT3) {
+		List<RedditLink> newLinks = new ArrayList<RedditLink>();
+		BufferedReader in = null;
+		try {
+			//URLConnection connection = new URL("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3).openConnection();
+			//in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+			HttpGet request = new HttpGet();
+            request.setURI(new URI("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3));
+            HttpResponse response = httpclient.execute(request, localContext);
+            in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			String inputLine;
+			StringBuilder sb = new StringBuilder();
+			while ((inputLine = in.readLine()) != null)
+				sb.append(inputLine);
+			in.close();
+
+			JSONObject jsonObject = new JSONObject(sb.toString());
+			JSONObject data = (JSONObject) jsonObject.get("data");
+			JSONArray children = (JSONArray) data.get("children");
+			for (int j = 0; j < children.length(); j++) {
+				JSONObject obj = (JSONObject) children.get(j);
+				JSONObject cData = (JSONObject) obj.get("data");
+				String url = (String) cData.get("url");
+				String commentUrl = "http://www.reddit.com" + cData.get("permalink");
+				String title = Html.fromHtml((String) cData.get("title")).toString();
+				String author = (String) cData.get("author");
+				String postedIn = (String) cData.get("subreddit");
+				int score = cData.getInt("score");								
+				Boolean voteStatus = null;
+				if(cData.isNull("likes") == false) {
+					voteStatus = cData.getBoolean("likes");
+				}
+				lastT3 = (String) cData.get("id");
+				if (isUrlValid(url)) {
+					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus);
+					newLinks.add(newRedditLink);
+					Log.d(RedditApplication.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
+				}
+			}
+		} catch (Exception e) {
+			Log.e(RedditApplication.APP_NAME, e.toString());
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					Log.e(RedditApplication.APP_NAME, e.toString());
+				}
+			}
+		}
+		return newLinks;
+	}
+	
+	private static boolean isUrlValid(String url) {
+		return url.matches(".*(gif|jpeg|jpg|png)$");
 	}
 	
 	private void saveLoginInfo(List<Cookie> cookies) {
@@ -167,14 +229,10 @@ public class RedditClient {
 		for (File cookieFile : cookiesCacheDir.listFiles()) {
 			cookieFile.delete();
 		}
-		httpclient = new DefaultHttpClient();
-		cookieStore = new BasicCookieStore();
-		localContext = new BasicHttpContext();
-		localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 		Log.d(RedditApplication.APP_NAME, "Logout completed");
 	}
 
-	public boolean vote(String id, String vote) {
+	public boolean vote(RedditLink currentLink, String vote) {
 		if(isLoggedIn() == false) {
 			Log.e(RedditApplication.APP_NAME, "error on vote");
 			return false;
@@ -185,7 +243,7 @@ public class RedditClient {
 		try {
 			HttpPost httppost = new HttpPost("http://www.reddit.com/api/vote");
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
-			nameValuePairs.add(new BasicNameValuePair("id", "t3_" + id));
+			nameValuePairs.add(new BasicNameValuePair("id", "t3_" + currentLink.getId()));
 			nameValuePairs.add(new BasicNameValuePair("dir", vote));
 			nameValuePairs.add(new BasicNameValuePair("uh", uh));
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -195,6 +253,8 @@ public class RedditClient {
 			boolean success = result.equals("{}");
 			if(success == false) {
 				Log.e(RedditApplication.APP_NAME, "error on vote");
+			} else {
+				currentLink.setVoteStatus(vote);
 			}
 			return success;
 		} catch (Exception exc) {

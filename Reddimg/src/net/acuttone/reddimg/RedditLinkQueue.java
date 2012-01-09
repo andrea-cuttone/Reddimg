@@ -71,50 +71,10 @@ public class RedditLinkQueue {
 	}
 
 	private void getNewLinks() {
-		List<RedditLink> newLinks = new ArrayList<RedditLink>();
 		String subreddit = subredditsList.get(nextSubredditIndex);
 		String lastT3 = lastT3List.get(nextSubredditIndex);
 		Log.d(RedditApplication.APP_NAME, "Fetching links from " + (subreddit.length() == 0 ? "reddit front page" : subreddit));
-		BufferedReader in = null;
-		try {
-			URLConnection connection = new URL("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3).openConnection();
-			in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			String inputLine;
-			StringBuilder sb = new StringBuilder();
-			while ((inputLine = in.readLine()) != null)
-				sb.append(inputLine);
-			in.close();
-
-			JSONObject jsonObject = new JSONObject(sb.toString());
-			JSONObject data = (JSONObject) jsonObject.get("data");
-			JSONArray children = (JSONArray) data.get("children");
-			for (int j = 0; j < children.length(); j++) {
-				JSONObject obj = (JSONObject) children.get(j);
-				JSONObject cData = (JSONObject) obj.get("data");
-				String url = (String) cData.get("url");
-				String commentUrl = "http://www.reddit.com" + cData.get("permalink");
-				String title = Html.fromHtml((String) cData.get("title")).toString();
-				String author = (String) cData.get("author");
-				String postedIn = (String) cData.get("subreddit");
-				int score = cData.getInt("score");				
-				lastT3 = (String) cData.get("id");
-				if (isUrlValid(url)) {
-					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score);
-					newLinks.add(newRedditLink);
-					Log.d(RedditApplication.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
-				}
-			}
-		} catch (Exception e) {
-			Log.e(RedditApplication.APP_NAME, e.toString());
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					Log.e(RedditApplication.APP_NAME, e.toString());
-				}
-			}
-		}
+		List<RedditLink> newLinks = RedditApplication.instance().getRedditClient().getLinks(subreddit, lastT3);
 		if (lastT3 != null && !lastT3.equals("")) {
 			lastT3List.set(nextSubredditIndex, lastT3);
 		}
@@ -144,10 +104,6 @@ public class RedditLinkQueue {
 				break;
 			}
 		}
-	}
-	
-	private static boolean isUrlValid(String url) {
-		return url.matches(".*(gif|jpeg|jpg|png)$");
 	}
 	
 }

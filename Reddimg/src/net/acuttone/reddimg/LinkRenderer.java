@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,13 +15,16 @@ public class LinkRenderer {
 
 	private static final int TITLE_SIDE_MARGIN = 5;
 
-	private Paint textPaint;
+	private Paint paint;
+	private Bitmap upvoteBmp;
+	private Bitmap downvoteBmp;
 	
 	public LinkRenderer() {
-		textPaint = new Paint();
-		textPaint.setColor(Color.WHITE);		
-		textPaint.setAntiAlias(true);
-	}
+		paint = new Paint();
+		paint.setColor(Color.WHITE);		
+		paint.setAntiAlias(true);
+		upvoteBmp = BitmapFactory.decodeResource(RedditApplication.instance().getResources(), R.drawable.upvote);
+		downvoteBmp = BitmapFactory.decodeResource(RedditApplication.instance().getResources(), R.drawable.downvote);	}
 	
 	public Bitmap render(RedditLink link, Bitmap image) {
 		StringBuilder sb = new StringBuilder();
@@ -35,10 +39,11 @@ public class LinkRenderer {
 		if(sp.getBoolean("showSubreddit", false)) {
 			sb.append(" in " + link.getSubreddit());
 		}	
+		
 		int textSize = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "14"));
-		textPaint.setTextSize(textSize);
+		paint.setTextSize(textSize);
 		int width = RedditApplication.instance().getScreenW() - 2 * TITLE_SIDE_MARGIN;
-		List<String> lines = TextWrapper.getWrappedLines(sb.toString(), width, textPaint);		
+		List<String> lines = TextWrapper.getWrappedLines(sb.toString(), width, paint);		
 		int imgYpos = textSize + (lines.size()-1) * textSize + textSize / 2;
 		Bitmap currentImg = null;
 		try {
@@ -48,8 +53,13 @@ public class LinkRenderer {
 			return null;
 		}
 		Canvas canvas = new Canvas(currentImg);
-		TextWrapper.drawTextLines(canvas, lines, TITLE_SIDE_MARGIN, textSize, textPaint);
+		TextWrapper.drawTextLines(canvas, lines, TITLE_SIDE_MARGIN, textSize, paint);
 		canvas.drawBitmap(image, 0, imgYpos, null);
+		if(RedditClient.UPVOTE.equals(link.getVoteStatus())) {
+			canvas.drawBitmap(upvoteBmp, image.getWidth() - upvoteBmp.getWidth(), imgYpos, paint);
+		} else if(RedditClient.DOWNVOTE.equals(link.getVoteStatus())) {
+			canvas.drawBitmap(downvoteBmp, image.getWidth() - downvoteBmp.getWidth(), imgYpos, paint);
+		}
 		return currentImg;
 	}
 
