@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -27,7 +28,7 @@ public class LoginActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.login);
-		SharedPreferences sharedPrefs = RedditApplication.instance().getSharedPrefs();
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
 		EditText etUsername = (EditText) findViewById(R.id.etUsername);
 		etUsername.setText(sharedPrefs.getString(PREF_USERNAME_KEY, ""));
 		Button button = (Button) findViewById(R.id.btnLogin);
@@ -58,7 +59,7 @@ public class LoginActivity extends Activity {
 			String password = etPassword.getText().toString();
 			boolean success = RedditApplication.instance().getRedditClient().doLogin(username, password);
 			if(success) {
-				SharedPreferences sharedPrefs = RedditApplication.instance().getSharedPrefs();
+				SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
 				Editor editor = sharedPrefs.edit();
 				editor.putString(PREF_USERNAME_KEY, username);
 				editor.commit();

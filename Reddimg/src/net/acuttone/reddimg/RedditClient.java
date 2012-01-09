@@ -38,6 +38,7 @@ import org.json.JSONObject;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 
@@ -54,13 +55,15 @@ public class RedditClient {
 	private String uh;
 	private HttpContext localContext;
 	private File cookiesCacheDir;
+	private boolean cookiesFound;
+
 	
 	public RedditClient(File cacheDir) {
 		httpclient = new DefaultHttpClient();
 		CookieStore cookieStore = new BasicCookieStore();
 		localContext = new BasicHttpContext();
 		localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-
+		cookiesFound = false;
 		this.cookiesCacheDir = new File(cacheDir, "cookies");
 		if (cookiesCacheDir.exists()) {
 			for (File cookieFile : cookiesCacheDir.listFiles()) {
@@ -72,6 +75,7 @@ public class RedditClient {
 					SerializableCookie sc = (SerializableCookie) in.readObject();
 					Cookie sessionCookie = SerializableCookie.toBasicClientCookie(sc);
 					cookieStore.addCookie(sessionCookie);
+					cookiesFound = true;
 					Log.d(RedditApplication.APP_NAME, "session cookie read successfully");
 				} catch (Exception ex) {
 					Log.e(RedditApplication.APP_NAME, "error loading cookie: " + ex.toString());
@@ -88,7 +92,7 @@ public class RedditClient {
 			cookiesCacheDir.mkdir();
 		}
 
-		uh = RedditApplication.instance().getSharedPrefs().getString(UH_KEY, "");
+		uh = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance()).getString(UH_KEY, "");
 		if (!"".equals(uh)) {
 			Log.d(RedditApplication.APP_NAME, "UH found");
 		} else {
@@ -135,9 +139,6 @@ public class RedditClient {
 		List<RedditLink> newLinks = new ArrayList<RedditLink>();
 		BufferedReader in = null;
 		try {
-			//URLConnection connection = new URL("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3).openConnection();
-			//in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
 			HttpGet request = new HttpGet();
             request.setURI(new URI("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3));
             HttpResponse response = httpclient.execute(request, localContext);
@@ -191,8 +192,8 @@ public class RedditClient {
 	
 	private void saveLoginInfo(List<Cookie> cookies) {
 		// save uh
-		SharedPreferences sharedPrefs = RedditApplication.instance().getSharedPrefs();
-		Editor edit = sharedPrefs.edit();
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+		Editor edit = sp.edit();
 		edit.putString(UH_KEY, uh);
 		edit.commit();
 
@@ -206,6 +207,7 @@ public class RedditClient {
 				fos = new FileOutputStream(cookieFile);
 				out = new ObjectOutputStream(fos);
 				out.writeObject(new SerializableCookie(c));
+				cookiesFound = true;
 			} catch (IOException ex) {
 				Log.e(RedditApplication.APP_NAME, "Error while writing cookie: " + ex.toString());
 			} finally {
@@ -226,6 +228,7 @@ public class RedditClient {
 		uh = "";
 		CookieStore cookieStore = (CookieStore) localContext.getAttribute(ClientContext.COOKIE_STORE);
 		cookieStore.clear();
+		cookiesFound = false;
 		for (File cookieFile : cookiesCacheDir.listFiles()) {
 			cookieFile.delete();
 		}
@@ -264,7 +267,7 @@ public class RedditClient {
 	}
 
 	public boolean isLoggedIn() {
-		if (httpclient == null || localContext == null || "".equals(uh)) {			
+		if (httpclient == null || localContext == null || "".equals(uh) || cookiesFound == false) {			
 			return false;
 		} else {
 			return true;
