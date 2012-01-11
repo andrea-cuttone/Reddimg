@@ -313,7 +313,7 @@ public class MainActivity extends Activity implements OnTouchListener {
 			return true;
 		case R.id.opencommentsmenuitem:
 			currentLink = RedditApplication.instance().getLinksQueue().get(currentLinkIndex);
-			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentLink.getCommentUrl()));
+			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentLink.getCommentUrl() + ".compact"));
 			startActivity(intent);
 			return true;
 		default:
