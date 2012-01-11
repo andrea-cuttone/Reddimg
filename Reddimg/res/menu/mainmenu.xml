@@ -2,15 +2,21 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/upvotemenuitem"
-          android:title="Upvote" />
+          android:title="Upvote" 
+          android:icon="@drawable/upvote_bw" />
     <item android:id="@+id/downvotemenuitem"
-          android:title="Downvote" />
+          android:title="Downvote"
+          android:icon="@drawable/downvote_bw" />
     <item android:id="@+id/openimgmenuitem"
-          android:title="Open in browser" />
+          android:title="Open in browser" 
+          android:icon="@android:drawable/ic_menu_gallery" />
     <item android:id="@+id/opencommentsmenuitem"
-          android:title="Show comments" />
+          android:title="Show comments"
+          android:icon="@drawable/ic_menu_start_conversation" />
 	<item android:id="@+id/loginmenuitem"
-          android:title="Login" />
+          android:title="Login"
+          android:icon="@drawable/ic_menu_login" />
     <item android:id="@+id/settingsmenuitem"
-          android:title="Settings" />    
+          android:title="Settings"
+          android:icon="@android:drawable/ic_menu_manage" />    
 </menu>
