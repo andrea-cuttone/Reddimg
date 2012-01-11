@@ -48,7 +48,7 @@ public class LinkRenderer {
 		Bitmap currentImg = null;
 		try {
 			currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);
-		} catch(Exception e) {
+		} catch(OutOfMemoryError e) {
 			Log.e(RedditApplication.APP_NAME, e.toString());
 			return null;
 		}

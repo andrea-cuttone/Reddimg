@@ -74,7 +74,8 @@ public class RedditLinkQueue {
 		String subreddit = subredditsList.get(nextSubredditIndex);
 		String lastT3 = lastT3List.get(nextSubredditIndex);
 		Log.d(RedditApplication.APP_NAME, "Fetching links from " + (subreddit.length() == 0 ? "reddit front page" : subreddit));
-		List<RedditLink> newLinks = RedditApplication.instance().getRedditClient().getLinks(subreddit, lastT3);
+		List<RedditLink> newLinks = new ArrayList<RedditLink>();
+		lastT3 = RedditApplication.instance().getRedditClient().getLinks(newLinks, subreddit, lastT3);
 		if (lastT3 != null && !lastT3.equals("")) {
 			lastT3List.set(nextSubredditIndex, lastT3);
 		}

@@ -135,8 +135,7 @@ public class RedditClient {
 		return success;
 	}
 	
-	public List<RedditLink> getLinks(String subreddit, String lastT3) {
-		List<RedditLink> newLinks = new ArrayList<RedditLink>();
+	public String getLinks(List<RedditLink> newLinks, String subreddit, String lastT3) {
 		BufferedReader in = null;
 		try {
 			HttpGet request = new HttpGet();
@@ -183,7 +182,7 @@ public class RedditClient {
 				}
 			}
 		}
-		return newLinks;
+		return lastT3;
 	}
 	
 	private static boolean isUrlValid(String url) {
