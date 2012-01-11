@@ -44,7 +44,7 @@ public class LinkRenderer {
 		paint.setTextSize(textSize);
 		int width = RedditApplication.instance().getScreenW() - 2 * TITLE_SIDE_MARGIN;
 		List<String> lines = TextWrapper.getWrappedLines(sb.toString(), width, paint);		
-		int imgYpos = textSize + (lines.size()-1) * textSize + textSize / 2;
+		int imgYpos = textSize + (lines.size()-1) * textSize + textSize;
 		Bitmap currentImg = null;
 		try {
 			currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);
