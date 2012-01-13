@@ -6,10 +6,9 @@ import android.content.SharedPreferences;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
-// TODO: rename to ReddimgApp
-public class RedditApplication extends Application {
+public class ReddimgApp extends Application {
 
-    private static RedditApplication instance;
+    private static ReddimgApp instance;
     
     public static String APP_NAME = "REDDIMG";
 	
@@ -21,7 +20,7 @@ public class RedditApplication extends Application {
 
 	private RedditClient redditClient;
 
-    public static RedditApplication instance() {
+    public static ReddimgApp instance() {
       return instance;
     }
 
@@ -36,10 +35,6 @@ public class RedditApplication extends Application {
 		imageCache = new ImageCache(imgResizer, this);
 		imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
 		imagePrefetcher.start();		
-	}
-	
-	public SharedPreferences getSharedPrefs() {
-		return getSharedPreferences(RedditApplication.APP_NAME, MODE_PRIVATE);		
 	}
 
 	public void loadScreenSize() {

@@ -13,8 +13,8 @@ public class ImageResizer {
 	}
 	
 	public Bitmap resize(Bitmap src) {
-		double screenW = RedditApplication.instance().getScreenW();
-		double screenH = RedditApplication.instance().getScreenH();
+		double screenW = ReddimgApp.instance().getScreenW();
+		double screenH = ReddimgApp.instance().getScreenH();
 		
 		double targetW, targetH;
 		if(resizeMode == ResizeMode.FIT_WIDTH || 

@@ -76,33 +76,34 @@ public class RedditClient {
 					Cookie sessionCookie = SerializableCookie.toBasicClientCookie(sc);
 					cookieStore.addCookie(sessionCookie);
 					cookiesFound = true;
-					Log.d(RedditApplication.APP_NAME, "session cookie read successfully");
+					Log.d(ReddimgApp.APP_NAME, "session cookie read successfully");
 				} catch (Exception ex) {
-					Log.e(RedditApplication.APP_NAME, "error loading cookie: " + ex.toString());
+					Log.e(ReddimgApp.APP_NAME, "error loading cookie: " + ex.toString());
 				} finally {
 					try {
 						in.close();
 					} catch (IOException ex) {
-						Log.e(RedditApplication.APP_NAME, "error loading cookie: " + ex.toString());
+						Log.e(ReddimgApp.APP_NAME, "error loading cookie: " + ex.toString());
 					}
 				}
 			}
 		} else {
-			Log.d(RedditApplication.APP_NAME, "no session cookies found");
+			Log.d(ReddimgApp.APP_NAME, "no session cookies found");
 			cookiesCacheDir.mkdir();
 		}
 
-		uh = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance()).getString(UH_KEY, "");
+		uh = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance()).getString(UH_KEY, "");
 		if (!"".equals(uh)) {
-			Log.d(RedditApplication.APP_NAME, "UH found");
+			Log.d(ReddimgApp.APP_NAME, "UH found");
 		} else {
-			Log.d(RedditApplication.APP_NAME, "UH not found");
+			Log.d(ReddimgApp.APP_NAME, "UH not found");
 		}
 	}
 
 	public boolean doLogin(String username, String password) {
 		boolean success = true;
 
+		// TODO: catch invalid username
 		HttpPost httppost = new HttpPost("https://ssl.reddit.com/api/login/" + username);
 		CookieStore cookieStore = (CookieStore) localContext.getAttribute(ClientContext.COOKIE_STORE);
 		cookieStore.clear();
@@ -128,7 +129,7 @@ public class RedditClient {
 				success = false;
 			}
 		} catch (Exception exc) {
-			Log.e(RedditApplication.APP_NAME, "error while logging in: " + exc.toString());
+			Log.e(ReddimgApp.APP_NAME, "error while logging in: " + exc.toString());
 			success = false;
 		}
 
@@ -168,17 +169,17 @@ public class RedditClient {
 				if (isUrlValid(url)) {
 					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus);
 					newLinks.add(newRedditLink);
-					Log.d(RedditApplication.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
+					Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 				}
 			}
 		} catch (Exception e) {
-			Log.e(RedditApplication.APP_NAME, e.toString());
+			Log.e(ReddimgApp.APP_NAME, e.toString());
 		} finally {
 			if (in != null) {
 				try {
 					in.close();
 				} catch (IOException e) {
-					Log.e(RedditApplication.APP_NAME, e.toString());
+					Log.e(ReddimgApp.APP_NAME, e.toString());
 				}
 			}
 		}
@@ -191,7 +192,7 @@ public class RedditClient {
 	
 	private void saveLoginInfo(List<Cookie> cookies) {
 		// save uh
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
 		Editor edit = sp.edit();
 		edit.putString(UH_KEY, uh);
 		edit.commit();
@@ -208,19 +209,19 @@ public class RedditClient {
 				out.writeObject(new SerializableCookie(c));
 				cookiesFound = true;
 			} catch (IOException ex) {
-				Log.e(RedditApplication.APP_NAME, "Error while writing cookie: " + ex.toString());
+				Log.e(ReddimgApp.APP_NAME, "Error while writing cookie: " + ex.toString());
 			} finally {
 				try {
 					out.close();
 				} catch (IOException ex) {
-					Log.e(RedditApplication.APP_NAME, "Error while writing cookie: " + ex.toString());
+					Log.e(ReddimgApp.APP_NAME, "Error while writing cookie: " + ex.toString());
 				}
 			}
 		}
 	}
 	
 	public void doLogout() {
-		SharedPreferences sharedPrefs = RedditApplication.instance().getSharedPrefs();
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
 		Editor edit = sharedPrefs.edit();
 		edit.remove(UH_KEY);
 		edit.commit();
@@ -231,12 +232,12 @@ public class RedditClient {
 		for (File cookieFile : cookiesCacheDir.listFiles()) {
 			cookieFile.delete();
 		}
-		Log.d(RedditApplication.APP_NAME, "Logout completed");
+		Log.d(ReddimgApp.APP_NAME, "Logout completed");
 	}
 
 	public boolean vote(RedditLink currentLink, String vote) {
 		if(isLoggedIn() == false) {
-			Log.e(RedditApplication.APP_NAME, "error on vote");
+			Log.e(ReddimgApp.APP_NAME, "error on vote");
 			return false;
 		}
 		
@@ -254,13 +255,13 @@ public class RedditClient {
 			result = EntityUtils.toString(entity);
 			boolean success = result.equals("{}");
 			if(success == false) {
-				Log.e(RedditApplication.APP_NAME, "error on vote");
+				Log.e(ReddimgApp.APP_NAME, "error on vote");
 			} else {
 				currentLink.setVoteStatus(vote);
 			}
 			return success;
 		} catch (Exception exc) {
-			Log.e(RedditApplication.APP_NAME, "error on vote: " + exc.toString());
+			Log.e(ReddimgApp.APP_NAME, "error on vote: " + exc.toString());
 			return false;
 		}
 	}
@@ -277,7 +278,7 @@ public class RedditClient {
 		List<String> subreddits = new ArrayList<String>();
 
 		if (isLoggedIn() == false) {
-			Log.e(RedditApplication.APP_NAME, "You must be logged in to retrieve your subreddits");
+			Log.e(ReddimgApp.APP_NAME, "You must be logged in to retrieve your subreddits");
 			return subreddits;
 		}
 
@@ -296,7 +297,7 @@ public class RedditClient {
 				subreddits.add(url);
 			}
 		} catch (Exception e) {
-			Log.e(RedditApplication.APP_NAME, "Error while retrieving subreddits: " + e.toString());
+			Log.e(ReddimgApp.APP_NAME, "Error while retrieving subreddits: " + e.toString());
 		}
 
 		return subreddits;

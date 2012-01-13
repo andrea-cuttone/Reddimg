@@ -28,7 +28,7 @@ public class LoginActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.login);
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
 		EditText etUsername = (EditText) findViewById(R.id.etUsername);
 		etUsername.setText(sharedPrefs.getString(PREF_USERNAME_KEY, ""));
 		Button button = (Button) findViewById(R.id.btnLogin);
@@ -57,9 +57,9 @@ public class LoginActivity extends Activity {
 			EditText etPassword = (EditText) findViewById(R.id.etPassword);
 			String username = etUsername.getText().toString();
 			String password = etPassword.getText().toString();
-			boolean success = RedditApplication.instance().getRedditClient().doLogin(username, password);
+			boolean success = ReddimgApp.instance().getRedditClient().doLogin(username, password);
 			if(success) {
-				SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+				SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
 				Editor editor = sharedPrefs.edit();
 				editor.putString(PREF_USERNAME_KEY, username);
 				editor.commit();

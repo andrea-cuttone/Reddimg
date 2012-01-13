@@ -34,13 +34,13 @@ public class RedditLinkQueue {
 		lastT3List = new ArrayList<String>();
 		subredditsList = new ArrayList<String>();
 
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
 		String mode = sp.getString(PrefsActivity.SUBREDDIT_MODE_KEY, PrefsActivity.SUBREDDITMODE_FRONTPAGE);
 		if (PrefsActivity.SUBREDDITMODE_MINE.equals(mode) &&
-			RedditApplication.instance().getRedditClient().isLoggedIn()) {
-			subredditsList = RedditApplication.instance().getRedditClient().getMySubreddits();
+			ReddimgApp.instance().getRedditClient().isLoggedIn()) {
+			subredditsList = ReddimgApp.instance().getRedditClient().getMySubreddits();
 		} else if (PrefsActivity.SUBREDDITMODE_MANUAL.equals(mode)) {
-			subredditsList = SubredditsPickerActivity.getSubredditsFromPref(RedditApplication.instance());
+			subredditsList = SubredditsPickerActivity.getSubredditsFromPref(ReddimgApp.instance());
 		}
 
 		if (subredditsList.isEmpty()) {
@@ -73,9 +73,9 @@ public class RedditLinkQueue {
 	private void getNewLinks() {
 		String subreddit = subredditsList.get(nextSubredditIndex);
 		String lastT3 = lastT3List.get(nextSubredditIndex);
-		Log.d(RedditApplication.APP_NAME, "Fetching links from " + (subreddit.length() == 0 ? "reddit front page" : subreddit));
+		Log.d(ReddimgApp.APP_NAME, "Fetching links from " + (subreddit.length() == 0 ? "reddit front page" : subreddit));
 		List<RedditLink> newLinks = new ArrayList<RedditLink>();
-		lastT3 = RedditApplication.instance().getRedditClient().getLinks(newLinks, subreddit, lastT3);
+		lastT3 = ReddimgApp.instance().getRedditClient().getLinks(newLinks, subreddit, lastT3);
 		if (lastT3 != null && !lastT3.equals("")) {
 			lastT3List.set(nextSubredditIndex, lastT3);
 		}

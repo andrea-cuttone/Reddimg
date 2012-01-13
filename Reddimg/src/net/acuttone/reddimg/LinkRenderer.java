@@ -23,12 +23,12 @@ public class LinkRenderer {
 		paint = new Paint();
 		paint.setColor(Color.WHITE);		
 		paint.setAntiAlias(true);
-		upvoteBmp = BitmapFactory.decodeResource(RedditApplication.instance().getResources(), R.drawable.upvote);
-		downvoteBmp = BitmapFactory.decodeResource(RedditApplication.instance().getResources(), R.drawable.downvote);	}
+		upvoteBmp = BitmapFactory.decodeResource(ReddimgApp.instance().getResources(), R.drawable.upvote);
+		downvoteBmp = BitmapFactory.decodeResource(ReddimgApp.instance().getResources(), R.drawable.downvote);	}
 	
 	public Bitmap render(RedditLink link, Bitmap image) {
 		StringBuilder sb = new StringBuilder();
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(RedditApplication.instance());
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
 		if(sp.getBoolean("showScore", false)) {
 			sb.append("[" + link.getScore() + "] ");
 		}
@@ -42,14 +42,14 @@ public class LinkRenderer {
 		
 		int textSize = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "14"));
 		paint.setTextSize(textSize);
-		int width = RedditApplication.instance().getScreenW() - 2 * TITLE_SIDE_MARGIN;
+		int width = ReddimgApp.instance().getScreenW() - 2 * TITLE_SIDE_MARGIN;
 		List<String> lines = TextWrapper.getWrappedLines(sb.toString(), width, paint);		
 		int imgYpos = textSize + (lines.size()-1) * textSize + textSize;
 		Bitmap currentImg = null;
 		try {
 			currentImg = Bitmap.createBitmap(image.getWidth(), image.getHeight() + imgYpos, Bitmap.Config.ARGB_8888);
 		} catch(OutOfMemoryError e) {
-			Log.e(RedditApplication.APP_NAME, e.toString());
+			Log.e(ReddimgApp.APP_NAME, e.toString());
 			return null;
 		}
 		Canvas canvas = new Canvas(currentImg);

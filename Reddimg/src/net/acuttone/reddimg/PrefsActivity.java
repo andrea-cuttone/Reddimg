@@ -48,7 +48,7 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	protected void onStop() {
 		super.onStop();
 		if(subredditsChanged) {
-			RedditApplication.instance().getLinksQueue().initSubreddits();
+			ReddimgApp.instance().getLinksQueue().initSubreddits();
 		}
 	}
 
