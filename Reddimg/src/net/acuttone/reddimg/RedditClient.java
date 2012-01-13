@@ -102,9 +102,13 @@ public class RedditClient {
 
 	public boolean doLogin(String username, String password) {
 		boolean success = true;
-
-		// TODO: catch invalid username
-		HttpPost httppost = new HttpPost("https://ssl.reddit.com/api/login/" + username);
+		HttpPost httppost = null;
+		try {
+			httppost = new HttpPost("https://ssl.reddit.com/api/login/" + username.trim());
+		} catch(Exception e) {
+			Log.e(ReddimgApp.APP_NAME, e.toString());
+			return false;
+		}
 		CookieStore cookieStore = (CookieStore) localContext.getAttribute(ClientContext.COOKIE_STORE);
 		cookieStore.clear();
 		try {
