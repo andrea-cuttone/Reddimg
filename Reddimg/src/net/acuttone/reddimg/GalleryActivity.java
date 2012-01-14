@@ -26,7 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MyGridView extends Activity {
+public class GalleryActivity extends Activity {
 	GridView gridView;
 
 	@Override
@@ -81,10 +81,10 @@ public class MyGridView extends Activity {
 			};
 			task.execute(i);
 		}
-		RedditLink left = new RedditLink("LEFT", "", "", "", "", "", "", 0, false);
+		RedditLink left = new RedditLink("LEFT", "", "", "", "", "", 0, false);
 		left.setThumb(BitmapFactory.decodeResource(getResources(), R.drawable.left_arrow));
 		links.add(left);
-		RedditLink right = new RedditLink("RIGHT", "", "", "", "", "", "", 0, false);
+		RedditLink right = new RedditLink("RIGHT", "", "", "", "", "", 0, false);
 		right.setThumb(BitmapFactory.decodeResource(getResources(), R.drawable.right_arrow));
 		links.add(right);
 

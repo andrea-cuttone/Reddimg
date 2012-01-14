@@ -164,7 +164,6 @@ public class RedditClient {
 				String title = Html.fromHtml((String) cData.get("title")).toString();
 				String author = (String) cData.get("author");
 				String postedIn = (String) cData.get("subreddit");
-				String thumbURL = (String) cData.get("thumbnail");
 				int score = cData.getInt("score");								
 				Boolean voteStatus = null;
 				if(cData.isNull("likes") == false) {
@@ -172,7 +171,7 @@ public class RedditClient {
 				}
 				lastT3 = (String) cData.get("id");
 				if (isUrlValid(url)) {
-					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, thumbURL, score, voteStatus);
+					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus);
 					newLinks.add(newRedditLink);
 					Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 				}
