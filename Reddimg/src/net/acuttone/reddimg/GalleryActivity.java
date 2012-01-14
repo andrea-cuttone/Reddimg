@@ -26,8 +26,6 @@ public class GalleryActivity extends Activity {
 	private static final int PICS_PER_PAGE = 12;
 
 	private Bitmap icon;
-	private Bitmap left;
-	private Bitmap right;
 	private int page;
 
 	@Override
@@ -41,8 +39,6 @@ public class GalleryActivity extends Activity {
 		icon = BitmapFactory.decodeResource(getResources(), R.drawable.icon);
 		icon = Bitmap.createScaledBitmap(icon, ReddimgApp.instance().getScreenW() / 2, 
 				ReddimgApp.instance().getScreenW() / 2, true);
-		left = BitmapFactory.decodeResource(getResources(), R.drawable.left_arrow);
-		right = BitmapFactory.decodeResource(getResources(), R.drawable.right_arrow);
 		page = 0;
 		
 		GridView gridView = (GridView) findViewById(R.id.MyGrid);
@@ -148,9 +144,9 @@ public class GalleryActivity extends Activity {
 			view = li.inflate(R.layout.grid_item, null);
 			ImageView iv = (ImageView) view.findViewById(R.id.grid_item_image);
 			if (isLeftButton(position)) {
-				iv.setImageBitmap(left);
+				iv.setImageResource(R.drawable.left_arrow);
 			} else if(isRightButton(position)) {
-				iv.setImageBitmap(right);
+				iv.setImageResource(R.drawable.right_arrow);
 			} else {
 				RedditLink link = links.get(position);
 				if (link.getThumb() != null && link.getThumb().isRecycled() == false) {

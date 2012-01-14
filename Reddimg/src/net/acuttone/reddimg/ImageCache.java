@@ -137,7 +137,10 @@ public class ImageCache {
 			if (contentLength > MAX_IMAGE_SIZE) {
 				Log.w(ReddimgApp.APP_NAME, url + " exceeds max image size");
 			} else {
-				boolean enoughSpace = checkDiskCacheSize(contentLength);
+				boolean enoughSpace = false;
+				synchronized (diskCacheFiles) {
+					enoughSpace = checkDiskCacheSize(contentLength);
+				}
 				if (!enoughSpace) {
 					Log.w(ReddimgApp.APP_NAME, "Insufficient space on disk to store " + url);
 				} else {
@@ -151,7 +154,9 @@ public class ImageCache {
 					}
 					out.close();
 					is.close();
-					diskCacheFiles.add(img);
+					synchronized (diskCacheFiles) {
+						diskCacheFiles.add(img);
+					}
 					return getFromDisk(url);
 				}
 			}
