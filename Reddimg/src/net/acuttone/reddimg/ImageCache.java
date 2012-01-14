@@ -23,7 +23,6 @@ import android.graphics.BitmapFactory;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-// TODO: split into memcache and diskcache
 public class ImageCache {
 	private static final int MEGABYTE = 1000000;
 	private static final int MAX_IMAGE_SIZE = 1 * MEGABYTE;
@@ -79,22 +78,22 @@ public class ImageCache {
 		}
 	}
 	
-	public boolean prepareImage(String url) {
+	public Bitmap prepareImage(String url) {
 		Log.d(ReddimgApp.APP_NAME, "Preparing " + url);
 		Bitmap result = getFromDisk(url);
 		if (result != null) {
 			Log.d(ReddimgApp.APP_NAME, url + " found on disk cache");
-			return true;
+			return result;
 		}
 		
 		result = getFromWeb(url);
 		if(result != null) {
 			Log.d(ReddimgApp.APP_NAME, url + " dl from web");
-			return true;
+			return result;
 		}
 		
 		Log.w(ReddimgApp.APP_NAME, url + " could not be dl from web");
-		return false;
+		return null;
 	}
 
 	private Bitmap getFromDisk(String url) {

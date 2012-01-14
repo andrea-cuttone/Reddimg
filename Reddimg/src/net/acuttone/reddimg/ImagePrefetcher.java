@@ -20,20 +20,20 @@ public class ImagePrefetcher extends Thread {
 		while (terminationRequested == false) {
 			if (ImagePrefetcherStatus.PAUSED != getStatus()) {
 				String targetUrl = "";
-				int lastRequestedIndex = linkQueue.getLastRequestedIndex();
-				for (int i = lastRequestedIndex; i < lastRequestedIndex + ImageCache.IN_MEM_CACHE_SIZE; i++) {
+				//int lastRequestedIndex = linkQueue.getLastRequestedIndex();
+				/*for (int i = lastRequestedIndex; i < lastRequestedIndex + ImageCache.IN_MEM_CACHE_SIZE; i++) {
 					RedditLink link = linkQueue.getForPrefetch(i);					
 					if (link != null && imageCache.getFromMem(link.getUrl()) == null) {
 						targetUrl = link.getUrl();
 						break;
 					}
-				}
+				}*/
 
 				if (targetUrl.length() > 0) {
-					boolean success = imageCache.prepareImage(targetUrl);
+					/*boolean success = imageCache.prepareImage(targetUrl);
 					if (success == false) {
-						linkQueue.removeUrl(targetUrl);
-					}
+						//linkQueue.removeUrl(targetUrl);
+					}*/
 				}
 			}
 			

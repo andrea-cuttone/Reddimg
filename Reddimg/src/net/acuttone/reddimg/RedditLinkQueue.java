@@ -22,14 +22,13 @@ public class RedditLinkQueue {
 	private List<RedditLink> links;
 	private List<String> lastT3List;
 	private List<String> subredditsList;
-	private int lastRequestedIndex;
 	private int nextSubredditIndex;
 	
 	public RedditLinkQueue() {
 		initSubreddits();
 	}
 	
-	public synchronized void initSubreddits() {
+	public void initSubreddits() {
 		links = new ArrayList<RedditLink>();
 		lastT3List = new ArrayList<String>();
 		subredditsList = new ArrayList<String>();
@@ -49,26 +48,15 @@ public class RedditLinkQueue {
 		for (String s : subredditsList) {
 			lastT3List.add("");
 		}
-		lastRequestedIndex = 0;
 		nextSubredditIndex = 0;
 	}
 
-	public synchronized RedditLink get(int index) {
-		lastRequestedIndex = index;
-		if(index >= links.size()) {
-			return null;
-		} else {
-			return links.get(index);
-		}
-	}
-	
-	public RedditLink getForPrefetch(int index) {
-		// links does not need synch here since it is accessed only by the prefetching thread
-		if(index >= links.size()) {
+	public RedditLink get(int index) {
+		while(index >= links.size()) {
 			getNewLinks();
 		}
-		return index >= links.size() ? null : links.get(index);
-	}
+		return links.get(index);
+	}	
 
 	private void getNewLinks() {
 		String subreddit = subredditsList.get(nextSubredditIndex);
@@ -90,19 +78,6 @@ public class RedditLinkQueue {
 				if (links.contains(l) == false) {
 					links.add(l);
 				}
-			}
-		}
-	}
-
-	public synchronized int getLastRequestedIndex() {
-		return lastRequestedIndex;
-	}
-
-	public synchronized void removeUrl(String targetUrl) {
-		for(Iterator<RedditLink> iter = links.iterator(); iter.hasNext();) {
-			if(iter.next().getUrl().equals(targetUrl)) {
-				iter.remove();
-				break;
 			}
 		}
 	}

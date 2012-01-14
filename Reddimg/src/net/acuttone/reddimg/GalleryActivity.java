@@ -1,15 +1,13 @@
 package net.acuttone.reddimg;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BitmapFactory.Options;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,11 +21,14 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class GalleryActivity extends Activity {
-	GridView gridView;
+	private static final int PICS_PER_PAGE = 12;
+
+	private Bitmap icon;
+	private Bitmap left;
+	private Bitmap right;
+	private int page;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -35,68 +36,89 @@ public class GalleryActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-		ReddimgApp.instance().getImagePrefetcher().setStatus(ImagePrefetcherStatus.RUNNING);
-
 		setContentView(R.layout.gallery);
-		final List<RedditLink> links = new ArrayList<RedditLink>();
 
-		int startPos = 0;
-		int endPos = startPos + 8;
-		do {
-
-		} while (ReddimgApp.instance().getLinksQueue().get(endPos) == null);
-		final ImageAdapter imageAdapter = new ImageAdapter(this, links);
-		for (int i = startPos; i < endPos; i++) {
-			links.add(ReddimgApp.instance().getLinksQueue().get(i));
-			AsyncTask<Integer, Integer, RedditLink> task = new AsyncTask<Integer, Integer, RedditLink>() {
-
-				@Override
-				protected RedditLink doInBackground(Integer... params) {
-					RedditLink l = links.get(params[0]);
-					if (l.getThumb() == null || l.getThumb().isRecycled()) {
-						try {
-							HttpURLConnection connection = (HttpURLConnection) new URL(l.getUrl()).openConnection();
-							connection.setConnectTimeout(5000);
-							Options options = new BitmapFactory.Options();
-							options.inSampleSize = 4;
-							Bitmap bitmap = BitmapFactory.decodeStream(connection.getInputStream(), null, options);
-							int wSize = ReddimgApp.instance().getScreenW() / 2;
-							int hSize = ReddimgApp.instance().getScreenH() / 4;
-							Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, wSize, hSize, true);
-							l.setThumb(scaledBitmap);
-							bitmap.recycle();
-						} catch (Exception e) {
-							Log.e(ReddimgApp.APP_NAME, e.toString());
-						}
-					}
-					return l;
-				}
-
-				@Override
-				protected void onPostExecute(RedditLink result) {
-					super.onPostExecute(result);
-					imageAdapter.notifyDataSetChanged();
-				}
-
-			};
-			task.execute(i);
-		}
-		RedditLink left = new RedditLink("LEFT", "", "", "", "", "", 0, false);
-		left.setThumb(BitmapFactory.decodeResource(getResources(), R.drawable.left_arrow));
-		links.add(left);
-		RedditLink right = new RedditLink("RIGHT", "", "", "", "", "", 0, false);
-		right.setThumb(BitmapFactory.decodeResource(getResources(), R.drawable.right_arrow));
-		links.add(right);
-
-		gridView = (GridView) findViewById(R.id.MyGrid);
-		gridView.setAdapter(imageAdapter);
+		icon = BitmapFactory.decodeResource(getResources(), R.drawable.icon);
+		icon = Bitmap.createScaledBitmap(icon, ReddimgApp.instance().getScreenW() / 2, 
+				ReddimgApp.instance().getScreenW() / 2, true);
+		left = BitmapFactory.decodeResource(getResources(), R.drawable.left_arrow);
+		right = BitmapFactory.decodeResource(getResources(), R.drawable.right_arrow);
+		page = 0;
+		
+		GridView gridView = (GridView) findViewById(R.id.MyGrid);
 		gridView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-				Toast.makeText(getApplicationContext(), "" + position, Toast.LENGTH_LONG);
+				Log.d(ReddimgApp.APP_NAME, "" + position);
+				if(isLeftButton(position)) {
+					page = Math.max(0, page - 1);
+					loadLinks();
+				} else if(isRightButton(position)) {
+					page++;
+					loadLinks();
+				}
 			}
 		});
+		
+		loadLinks();
+	}
+
+	public void loadLinks() {
+		final List<RedditLink> links = new ArrayList<RedditLink>();
+		final int startPos = page * PICS_PER_PAGE;
+		final int endPos = (page + 1) * PICS_PER_PAGE;
+		final ProgressDialog progressDialog = ProgressDialog.show(this, "Reddimg", "Fetching links...");
+		AsyncTask<Integer,Void,Void> loadLinksTask = new AsyncTask<Integer, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Integer... params) {
+				ReddimgApp.instance().getLinksQueue().get(params[0]);
+				return null;
+			}
+			
+			@Override
+			protected void onPostExecute(Void result) {
+				super.onPostExecute(result);
+				progressDialog.dismiss();
+				final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, links);
+				for (int i = startPos; i < endPos; i++) {
+					links.add(ReddimgApp.instance().getLinksQueue().get(i));
+					AsyncTask<Integer, Integer, RedditLink> loadImgTask = new AsyncTask<Integer, Integer, RedditLink>() {
+
+						@Override
+						protected RedditLink doInBackground(Integer... params) {
+							RedditLink l = links.get(params[0]);
+							l.prepareThumb();
+							return l;
+						}
+
+						@Override
+						protected void onPostExecute(RedditLink result) {
+							super.onPostExecute(result);
+							imageAdapter.notifyDataSetChanged();
+						}
+
+					};
+					loadImgTask.execute(i - startPos);
+				}
+				// empty items for the arrows
+				links.add(null);
+				links.add(null);
+
+				GridView gridView = (GridView) findViewById(R.id.MyGrid);
+				gridView.setAdapter(imageAdapter);
+			}
+		};
+		loadLinksTask.execute(endPos);
+	}
+	
+	public boolean isRightButton(int position) {
+		return position == PICS_PER_PAGE + 1;
+	}
+
+	public boolean isLeftButton(int position) {
+		return position == PICS_PER_PAGE;
 	}
 
 	public class ImageAdapter extends BaseAdapter {
@@ -121,25 +143,22 @@ public class GalleryActivity extends Activity {
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View view = convertView;
-
-			RedditLink link = links.get(position);
+			// todo: attempt to reuse convertView
 			LayoutInflater li = getLayoutInflater();
 			view = li.inflate(R.layout.grid_item, null);
-			//TextView tv = (TextView) view.findViewById(R.id.grid_item_text);
-			//tv.setText(link.getTitle());
 			ImageView iv = (ImageView) view.findViewById(R.id.grid_item_image);
-			
-			/*ImageView iv = new ImageView(context);
-			iv.setLayoutParams(new GridView.LayoutParams(85, 85));
-			iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
-			iv.setPadding(8, 8, 8, 8);
-            */
-			if (link.getThumb() != null && link.getThumb().isRecycled() == false) {
-				iv.setImageBitmap(link.getThumb());
+			if (isLeftButton(position)) {
+				iv.setImageBitmap(left);
+			} else if(isRightButton(position)) {
+				iv.setImageBitmap(right);
 			} else {
-				iv.setImageResource(R.drawable.icon);
+				RedditLink link = links.get(position);
+				if (link.getThumb() != null && link.getThumb().isRecycled() == false) {
+					iv.setImageBitmap(link.getThumb());
+				} else {
+					iv.setImageBitmap(icon);
+				}
 			}
-
 			return view;
 		}
 
