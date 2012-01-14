@@ -62,51 +62,44 @@ public class GalleryActivity extends Activity {
 
 	public void loadLinks() {
 		final List<RedditLink> links = new ArrayList<RedditLink>();
-		final int startPos = page * PICS_PER_PAGE;
-		final int endPos = (page + 1) * PICS_PER_PAGE;
+		final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, links);
+		GridView gridView = (GridView) findViewById(R.id.MyGrid);
+		gridView.setAdapter(imageAdapter);
 		final ProgressDialog progressDialog = ProgressDialog.show(this, "Reddimg", "Fetching links...");
-		AsyncTask<Integer,Void,Void> loadLinksTask = new AsyncTask<Integer, Void, Void>() {
+		AsyncTask<Integer, Void, Void> loadLinksTask = new AsyncTask<Integer, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Integer... params) {
-				ReddimgApp.instance().getLinksQueue().get(params[0]);
-				return null;
-			}
-			
-			@Override
-			protected void onPostExecute(Void result) {
-				super.onPostExecute(result);
-				progressDialog.dismiss();
-				final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, links);
+				int page = params[0];
+				int startPos = page * PICS_PER_PAGE;
+				int endPos = (page + 1) * PICS_PER_PAGE;
 				for (int i = startPos; i < endPos; i++) {
 					links.add(ReddimgApp.instance().getLinksQueue().get(i));
-					AsyncTask<Integer, Integer, RedditLink> loadImgTask = new AsyncTask<Integer, Integer, RedditLink>() {
-
-						@Override
-						protected RedditLink doInBackground(Integer... params) {
-							RedditLink l = links.get(params[0]);
-							l.prepareThumb();
-							return l;
-						}
-
-						@Override
-						protected void onPostExecute(RedditLink result) {
-							super.onPostExecute(result);
-							imageAdapter.notifyDataSetChanged();
-						}
-
-					};
-					loadImgTask.execute(i - startPos);
 				}
 				// empty items for the arrows
 				links.add(null);
 				links.add(null);
 
-				GridView gridView = (GridView) findViewById(R.id.MyGrid);
-				gridView.setAdapter(imageAdapter);
+				publishProgress(null);
+				for (RedditLink l : links) {
+					if(l != null) {
+						l.prepareThumb();
+						publishProgress(null);
+					}
+				}
+				return null;
+			}
+
+			@Override
+			protected void onProgressUpdate(Void... values) {
+				super.onProgressUpdate(values);
+				if(progressDialog.isShowing()) {
+					progressDialog.dismiss();
+				}
+				imageAdapter.notifyDataSetChanged();
 			}
 		};
-		loadLinksTask.execute(endPos);
+		loadLinksTask.execute(page);
 	}
 	
 	public boolean isRightButton(int position) {
