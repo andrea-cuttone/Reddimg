@@ -6,6 +6,7 @@ import java.util.List;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -53,6 +54,10 @@ public class GalleryActivity extends Activity {
 				} else if(isRightButton(position)) {
 					page++;
 					loadLinks();
+				} else {
+					Intent i= new Intent(getApplicationContext(), LinkViewerActivity.class);
+					i.putExtra(LinkViewerActivity.LINK_INDEX, page * PICS_PER_PAGE + position);
+					startActivity(i);
 				}
 			}
 		});

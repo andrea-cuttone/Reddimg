@@ -95,6 +95,10 @@ public class ImageCache {
 		Log.w(ReddimgApp.APP_NAME, url + " could not be dl from web");
 		return null;
 	}
+	
+	public String getDiskPath(String url) {
+		return "file://" + reddimgDir.getAbsolutePath() + "/" + urlToFilename(url);
+	}
 
 	private Bitmap getFromDisk(String url) {
 		Bitmap result = null;
@@ -249,7 +253,7 @@ public class ImageCache {
 		if(url.length() > 256) {
 			url = url.substring(url.length() - 256);
 		}
-		url = url.replaceAll("[\\W]+", "_");
+		url = url.replaceAll("[\\W&&[^.]]+", "_");
 		return url;
 	}
 

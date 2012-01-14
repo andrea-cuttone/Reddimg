@@ -20,6 +20,7 @@
         <activity android:name=".LoginActivity" />
         <activity android:name=".PrefsActivity" />
         <activity android:name=".SubredditsPickerActivity" />
+        <activity android:name=".LinkViewerActivity" />
     </application>
 
 </manifest>
