@@ -1,5 +1,7 @@
 package net.acuttone.reddimg;
 
+import android.graphics.Bitmap;
+
 
 public class RedditLink {
 	public String title;
@@ -10,8 +12,10 @@ public class RedditLink {
 	private String subreddit;
 	private String author;
 	private String voteStatus;
+	private String thumbURL;
+	private Bitmap thumb;
 
-	public RedditLink(String id, String url, String commentUrl, String title, String author, String subreddit, int score, Boolean voteStatus) {
+	public RedditLink(String id, String url, String commentUrl, String title, String author, String subreddit, String thumbURL, int score, Boolean voteStatus) {
 		this.id = id;
 		this.title = title;
 		this.url = url;
@@ -26,6 +30,8 @@ public class RedditLink {
 		} else if(voteStatus == false) {
 			this.voteStatus = RedditClient.DOWNVOTE;
 		}
+		this.thumbURL = thumbURL;
+		this.thumb = null;
 	}
 	
 	public String getId() {
@@ -62,6 +68,18 @@ public class RedditLink {
 	
 	public void setVoteStatus(String voteStatus) {
 		this.voteStatus = voteStatus;
+	}
+	
+	public String getThumbURL() {
+		return thumbURL;
+	}
+
+	public Bitmap getThumb() {
+		return thumb;
+	}
+	
+	public void setThumb(Bitmap thumb) {
+		this.thumb = thumb;
 	}
 	
 	@Override
