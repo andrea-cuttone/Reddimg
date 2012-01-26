@@ -78,13 +78,11 @@ public class RedditLink {
 	
 	public void prepareThumb() {
 		if(thumb == null || thumb.isRecycled()) {
-			Bitmap bitmap = ReddimgApp.instance().getImageCache().getFromMem(getUrl());
-			if(bitmap == null) {
-				bitmap = ReddimgApp.instance().getImageCache().prepareImage(getUrl());
-			}
+			Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(getUrl());
 			if (bitmap != null) {
 				int size = ReddimgApp.instance().getScreenW() / 2;
 				thumb = Bitmap.createScaledBitmap(bitmap, size, size, true);
+				bitmap.recycle();
 			}
 		} 
 	}

@@ -11,9 +11,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import android.content.Context;
@@ -27,19 +24,14 @@ public class ImageCache {
 	private static final int MEGABYTE = 1000000;
 	private static final int MAX_IMAGE_SIZE = 1 * MEGABYTE;
 	private static final long MAX_INTERNAL_CACHE_SIZE = 2 * MEGABYTE;
-	public static final int IN_MEM_CACHE_SIZE = 3;
 	private static final String FILE_PREFIX = "__RDIMG_";
 	
 	private File reddimgDir;
-	private LinkedHashMap<String, Bitmap> inMemCache;
-	private ImageResizer imgResizer;
 	private TreeSet<File> diskCacheFiles;
 	private boolean useSD;
 	
 	public ImageCache(ImageResizer imgResizer, Context context) {
-		this.imgResizer = imgResizer;
 		initDiskCache(context);
-		inMemCache = new LinkedHashMap<String, Bitmap>();
 	}
 
 	private void initDiskCache(Context context) {
@@ -67,18 +59,7 @@ public class ImageCache {
 		Log.d(ReddimgApp.APP_NAME, "Cache dir : " + reddimgDir.getAbsolutePath());
 	}
 
-	public Bitmap getFromMem(String url) {
-		synchronized (inMemCache) {
-			if (inMemCache.containsKey(url)) {
-				Bitmap bitmap = inMemCache.get(url);
-				return bitmap;
-			} else {
-				return null;
-			}
-		}
-	}
-	
-	public Bitmap prepareImage(String url) {
+	public Bitmap getImage(String url) {
 		Log.d(ReddimgApp.APP_NAME, "Preparing " + url);
 		Bitmap result = getFromDisk(url);
 		if (result != null) {
@@ -96,11 +77,7 @@ public class ImageCache {
 		return null;
 	}
 	
-	public String getDiskPath(String url) {
-		return reddimgDir.getAbsolutePath() + "/" + urlToFilename(url);
-	}
-
-	public Bitmap getFromDisk(String url) {
+	private Bitmap getFromDisk(String url) {
 		Bitmap result = null;
 		File img = new File(reddimgDir, urlToFilename(url));
 		if (img.exists()) {
@@ -122,11 +99,7 @@ public class ImageCache {
 				Log.e(ReddimgApp.APP_NAME, e.toString());				
 			}
 		}
-		if (result != null) {
-			storeInMem(url, result);
-			result.recycle();
-		}
-		return getFromMem(url);
+		return result;
 	}
 
 	private Bitmap getFromWeb(String url) {
@@ -223,31 +196,6 @@ public class ImageCache {
 		}
 	}
 
-	private void storeInMem(String url, Bitmap bitmap) {
-		synchronized (inMemCache) {
-			if (inMemCache.size() >= IN_MEM_CACHE_SIZE) {
-				Iterator<Entry<String, Bitmap>> iterator = inMemCache.entrySet().iterator();
-				Entry<String, Bitmap> entry = iterator.next();
-				entry.getValue().recycle();
-				iterator.remove();
-				Log.d(ReddimgApp.APP_NAME, entry.getKey() + " removed from mem cache");
-			}
-			Bitmap resizedImg = imgResizer.resize(bitmap);
-			inMemCache.put(url, resizedImg);
-		}
-	}
-	
-	public void clearMemCache() {
-		synchronized (inMemCache) {
-			for(Iterator<Entry<String, Bitmap>> iterator = inMemCache.entrySet().iterator(); iterator.hasNext();) {
-				Entry<String, Bitmap> entry = iterator.next();
-				entry.getValue().recycle();
-				iterator.remove();
-			}
-			Log.d(ReddimgApp.APP_NAME, "mem cache cleared");
-		}
-	}
-	
 	private static String urlToFilename(String url) {
 		url = FILE_PREFIX + url; 
 		if(url.length() > 256) {

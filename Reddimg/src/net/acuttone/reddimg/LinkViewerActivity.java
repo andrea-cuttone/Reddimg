@@ -3,6 +3,8 @@ package net.acuttone.reddimg;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -15,6 +17,7 @@ public class LinkViewerActivity extends Activity {
 
 	public static final String LINK_INDEX = "LINK_INDEX";
 	private int currentLinkIndex;
+	private ImageView view;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -27,10 +30,21 @@ public class LinkViewerActivity extends Activity {
 		RedditLink redditLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 		TextView titleTextView = (TextView) findViewById(R.id.textViewTitle);
 		titleTextView.setText(redditLink.getTitle());
-		ReddimgApp.instance().getImageCache().prepareImage(redditLink.getUrl());
-		String diskPath = ReddimgApp.instance().getImageCache().getDiskPath(redditLink.getUrl());
-		Bitmap bitmap = ReddimgApp.instance().getImageCache().getFromDisk(redditLink.getUrl());
-		ImageView view = (ImageView) findViewById(R.id.scrollViewLink).findViewById(R.id.imageViewLink);
+		Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
+		view = (ImageView) findViewById(R.id.scrollViewLink).findViewById(R.id.imageViewLink);
+		view.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+		view.setAdjustViewBounds(true);
 		view.setImageBitmap(bitmap);
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Drawable drawable = view.getDrawable();
+		if (drawable instanceof BitmapDrawable) {
+		    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+		    Bitmap bitmap = bitmapDrawable.getBitmap();
+		    bitmap.recycle();
+		}
 	}
 }
