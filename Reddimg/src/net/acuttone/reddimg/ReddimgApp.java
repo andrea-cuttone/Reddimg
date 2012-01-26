@@ -54,10 +54,12 @@ public class ReddimgApp extends Application {
 	}
 
 	public int getScreenW() {
+		loadScreenSize();
 		return screenW;
 	}
 
 	public int getScreenH() {
+		loadScreenSize();
 		return screenH;
 	}
 

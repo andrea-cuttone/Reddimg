@@ -1,10 +1,14 @@
 package net.acuttone.reddimg;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class LinkViewerActivity extends Activity {
@@ -23,12 +27,10 @@ public class LinkViewerActivity extends Activity {
 		RedditLink redditLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 		TextView titleTextView = (TextView) findViewById(R.id.textViewTitle);
 		titleTextView.setText(redditLink.getTitle());
-		WebView webView = (WebView) findViewById(R.id.webViewLink);
-		// TODO: fix the width
-		//webView.getSettings().setLoadWithOverviewMode(true);
-		//webView.getSettings().setUseWideViewPort(true);
 		ReddimgApp.instance().getImageCache().prepareImage(redditLink.getUrl());
 		String diskPath = ReddimgApp.instance().getImageCache().getDiskPath(redditLink.getUrl());
-		webView.loadUrl(diskPath);
+		Bitmap bitmap = ReddimgApp.instance().getImageCache().getFromDisk(redditLink.getUrl());
+		ImageView view = (ImageView) findViewById(R.id.scrollViewLink).findViewById(R.id.imageViewLink);
+		view.setImageBitmap(bitmap);
 	}
 }

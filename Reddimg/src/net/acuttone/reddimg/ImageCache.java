@@ -97,10 +97,10 @@ public class ImageCache {
 	}
 	
 	public String getDiskPath(String url) {
-		return "file://" + reddimgDir.getAbsolutePath() + "/" + urlToFilename(url);
+		return reddimgDir.getAbsolutePath() + "/" + urlToFilename(url);
 	}
 
-	private Bitmap getFromDisk(String url) {
+	public Bitmap getFromDisk(String url) {
 		Bitmap result = null;
 		File img = new File(reddimgDir, urlToFilename(url));
 		if (img.exists()) {
