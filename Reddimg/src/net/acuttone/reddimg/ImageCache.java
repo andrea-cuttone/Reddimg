@@ -30,7 +30,7 @@ public class ImageCache {
 	private TreeSet<File> diskCacheFiles;
 	private boolean useSD;
 	
-	public ImageCache(ImageResizer imgResizer, Context context) {
+	public ImageCache(Context context) {
 		initDiskCache(context);
 	}
 

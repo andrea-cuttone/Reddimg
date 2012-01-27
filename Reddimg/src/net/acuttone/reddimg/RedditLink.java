@@ -91,12 +91,16 @@ public class RedditLink {
 					try {
 						bmpSquared = Bitmap.createBitmap(bmpFullSize, x0, y0, x1, y1);
 						bmpFullSize.recycle();
-					} catch (Exception e) {
+					} catch (Throwable e) {
 						Log.w(ReddimgApp.APP_NAME, e.toString());
 					}
 				}
-				thumb = Bitmap.createScaledBitmap(bmpSquared, size, size, true);
-				bmpSquared.recycle();
+				try {
+					thumb = Bitmap.createScaledBitmap(bmpSquared, size, size, true);
+					bmpSquared.recycle();
+				} catch (Throwable e) {
+					Log.w(ReddimgApp.APP_NAME, e.toString());
+				}
 			}
 		}
 	}

@@ -2,11 +2,13 @@ package net.acuttone.reddimg;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -90,7 +92,7 @@ public class LinkViewerActivity extends Activity {
 			@Override
 			protected void onProgressUpdate(RedditLink... values) {
 				super.onProgressUpdate(values);
-				textViewTitle.setText(values[0].getTitle());
+				updateTitle(values[0]);
 				progressDialog.setMessage("Loading image...");
 			}
 
@@ -156,5 +158,23 @@ public class LinkViewerActivity extends Activity {
 		    	bitmap.recycle();
 		    }
 		}
+	}
+
+	public void updateTitle(RedditLink link) {
+		StringBuilder sb = new StringBuilder();
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		if(sp.getBoolean("showScore", false)) {
+			sb.append("[" + link.getScore() + "] ");
+		}
+		sb.append(link.getTitle());
+		if(sp.getBoolean("showAuthor", false)) {
+			sb.append(" | by " + link.getAuthor());
+		}		
+		if(sp.getBoolean("showSubreddit", false)) {
+			sb.append(" in " + link.getSubreddit());
+		}
+		textViewTitle.setText(sb.toString());
+		int size = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "24"));
+		textViewTitle.setTextSize(size);
 	}
 }
