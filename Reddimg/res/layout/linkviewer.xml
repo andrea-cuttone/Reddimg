@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent" android:layout_height="match_parent"
 	android:orientation="vertical">
-	<TextView android:text="Title" android:id="@+id/textViewTitle"
+	<TextView android:text="" android:id="@+id/textViewTitle"
 		android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
 		android:layout_width="match_parent"></TextView>
 	<FrameLayout android:id="@+id/framelayout"

@@ -1,6 +1,7 @@
 package net.acuttone.reddimg;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -57,18 +58,59 @@ public class LinkViewerActivity extends Activity {
 	}
 	
 	private void loadImage() {
-		recycleBitmap();
-		
-		RedditLink redditLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
-		textViewTitle.setText(redditLink.getTitle());
-		Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
+		AsyncTask<Integer, RedditLink, Object[]> loadTask = new AsyncTask<Integer, RedditLink, Object[]>() {
+			private ProgressDialog progressDialog;
+
+			@Override
+			protected void onPreExecute() {
+				super.onPreExecute();
+				if(fadeTask != null) {
+					fadeTask.cancel(true);
+				}
+				
+				viewLeftArrow.setAlpha(0);
+				viewRightArrow.setAlpha(0);
+				
+				recycleBitmap();
+				
+				progressDialog = ProgressDialog.show(LinkViewerActivity.this, "Reddimg", "Loading links...");
+			}
+
+			@Override
+			protected Object[] doInBackground(Integer... params) {
+				RedditLink redditLink = ReddimgApp.instance().getLinksQueue().get(params[0]);
+				publishProgress(redditLink);
+				Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
+				Object [] result = new Object[2];
+				result[0] = bitmap;
+				result[1] = redditLink;
+				return result;
+			}
+			
+			@Override
+			protected void onProgressUpdate(RedditLink... values) {
+				super.onProgressUpdate(values);
+				textViewTitle.setText(values[0].getTitle());
+				progressDialog.setMessage("Loading image...");
+			}
+
+			@Override
+			protected void onPostExecute(Object[] result) {
+				super.onPostExecute(result);
+				progressDialog.dismiss();
+				Bitmap bitmap = (Bitmap) ((Object []) result)[0];
+				RedditLink redditLink = (RedditLink) ((Object []) result)[1];
+				
+				applyImage(bitmap, redditLink);
+			}
+		};
+		loadTask.execute(currentLinkIndex);
+	}
+
+	private void applyImage(Bitmap bitmap, RedditLink redditLink) {
 		viewBitmap.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 		viewBitmap.setAdjustViewBounds(true);
 		viewBitmap.setImageBitmap(bitmap);
-		
-		if(fadeTask != null) {
-			fadeTask.cancel(true);
-		}
 		
 		fadeTask = new AsyncTask<Void, Integer, Void>() {
 
@@ -92,7 +134,6 @@ public class LinkViewerActivity extends Activity {
 			
 		};
 		fadeTask.execute(null);
-		
 	}
 
 	@Override
@@ -110,6 +151,7 @@ public class LinkViewerActivity extends Activity {
 		if (drawable instanceof BitmapDrawable) {
 		    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 		    Bitmap bitmap = bitmapDrawable.getBitmap();
+		    viewBitmap.setImageBitmap(null);
 		    if(bitmap != null && bitmap.isRecycled() == false) {
 		    	bitmap.recycle();
 		    }
