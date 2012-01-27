@@ -1,6 +1,7 @@
 package net.acuttone.reddimg;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 
 public class RedditLink {
@@ -76,15 +77,28 @@ public class RedditLink {
 		this.thumb = thumb;
 	}
 	
-	public void prepareThumb() {
-		if(thumb == null || thumb.isRecycled()) {
-			Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(getUrl());
-			if (bitmap != null) {
-				int size = ReddimgApp.instance().getScreenW() / 2;
-				thumb = Bitmap.createScaledBitmap(bitmap, size, size, true);
-				bitmap.recycle();
+	public void prepareThumb(int size) {
+		if (thumb == null || thumb.isRecycled()) {
+			Bitmap bmpFullSize = ReddimgApp.instance().getImageCache().getImage(getUrl());
+			if (bmpFullSize != null) {
+				Bitmap bmpSquared = bmpFullSize;
+				if (bmpFullSize.getWidth() != bmpFullSize.getHeight()) {
+					int minDim = Math.min(bmpFullSize.getWidth(), bmpFullSize.getHeight());
+					int x0 = (bmpFullSize.getWidth() - minDim) / 2;
+					int x1 = (bmpFullSize.getWidth() + minDim) / 2;
+					int y0 = (bmpFullSize.getHeight() - minDim) / 2;
+					int y1 = (bmpFullSize.getHeight() + minDim) / 2;
+					try {
+						bmpSquared = Bitmap.createBitmap(bmpFullSize, x0, y0, x1, y1);
+						bmpFullSize.recycle();
+					} catch (Exception e) {
+						Log.w(ReddimgApp.APP_NAME, e.toString());
+					}
+				}
+				thumb = Bitmap.createScaledBitmap(bmpSquared, size, size, true);
+				bmpSquared.recycle();
 			}
-		} 
+		}
 	}
 	
 	@Override

@@ -31,8 +31,12 @@ import android.widget.ImageView;
 public class GalleryActivity extends Activity {
 	private static final int PICS_PER_PAGE = 12;
 
-	private Bitmap icon;
+	private int thumbSize;
 	private int page;
+
+	private Paint paint;
+
+	private Random rnd;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -41,7 +45,9 @@ public class GalleryActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.gallery);
-
+		
+		rnd = new Random();
+		thumbSize = ReddimgApp.instance().getScreenW() / 2;
 		page = 0;
 		
 		GridView gridView = (GridView) findViewById(R.id.MyGrid);
@@ -90,7 +96,7 @@ public class GalleryActivity extends Activity {
 				publishProgress(null);
 				for (GridItem item : items) {
 					if(item != null && item.getRedditLink() != null) {
-						item.getRedditLink().prepareThumb();
+						item.getRedditLink().prepareThumb(thumbSize);
 						publishProgress(null);
 					}
 				}
@@ -117,20 +123,17 @@ public class GalleryActivity extends Activity {
 		return position == PICS_PER_PAGE;
 	}
 	
-	private static class GridItem {
+	private class GridItem {
 		
 		private RedditLink redditLink;
 		private Bitmap placeholder;
-
 		public GridItem(RedditLink link) {
 			this.redditLink = link;
-			Random rnd = new Random(); 
 		    int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)); 
-		    int size = ReddimgApp.instance().getScreenW() / 2;				    	
-		    placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_4444);
-		    Paint paint = new Paint();
+		    placeholder = Bitmap.createBitmap(thumbSize, thumbSize, Bitmap.Config.ARGB_4444);
+		    paint = new Paint();
 		    paint.setColor(color);
-		    new Canvas(placeholder).drawRect(new Rect(0, 0, size, size), paint);
+		    new Canvas(placeholder).drawRect(new Rect(0, 0, thumbSize, thumbSize), paint);
 		}
 		
 		public Bitmap getThumb() {
@@ -147,6 +150,10 @@ public class GalleryActivity extends Activity {
 
 		public void setRedditLink(RedditLink redditLink) {
 			this.redditLink = redditLink;
+		}
+		
+		public void dispose() {
+			// TODO
 		}
 	}
 
@@ -195,5 +202,11 @@ public class GalleryActivity extends Activity {
 		public long getItemId(int arg0) {
 			return 0;
 		}
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		// TODO: dispose griditems
 	}
 }
