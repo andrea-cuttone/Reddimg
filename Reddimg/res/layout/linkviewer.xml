@@ -26,5 +26,11 @@
 		<ImageView android:layout_gravity="center_vertical|right" android:layout_height="wrap_content"
 			android:id="@+id/imagerightarrow" android:layout_width="wrap_content"
 			android:src="@drawable/right_arrow"></ImageView>
+		<ImageView android:layout_gravity="top|right" android:layout_height="wrap_content"
+			android:id="@+id/imageupvote" android:layout_width="wrap_content"
+			android:src="@drawable/upvote"></ImageView>
+		<ImageView android:layout_gravity="top|right" android:layout_height="wrap_content"
+			android:id="@+id/imagedownvote" android:layout_width="wrap_content"
+			android:src="@drawable/downvote"></ImageView>
 	</FrameLayout>
 </LinearLayout>

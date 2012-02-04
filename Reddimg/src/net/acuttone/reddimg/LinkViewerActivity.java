@@ -32,6 +32,8 @@ public class LinkViewerActivity extends Activity {
 	private ImageView viewRightArrow;
 	private TextView textViewTitle;
 	private AsyncTask<Void,Integer,Void> fadeTask;
+	private ImageView viewUpvote;
+	private ImageView viewDownvote;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,10 @@ public class LinkViewerActivity extends Activity {
 		setContentView(R.layout.linkviewer);
 		textViewTitle = (TextView) findViewById(R.id.textViewTitle);
 		viewBitmap = (ImageView) findViewById(R.id.scrollViewLink).findViewById(R.id.imageViewLink);
+		viewUpvote = (ImageView) findViewById(R.id.imageupvote);
+		viewUpvote.setAlpha(0);
+		viewDownvote = (ImageView) findViewById(R.id.imagedownvote);
+		viewDownvote.setAlpha(0);
 		viewLeftArrow = (ImageView) findViewById(R.id.imageleftarrow);
 		viewRightArrow = (ImageView) findViewById(R.id.imagerightarrow);
 		viewLeftArrow.setOnClickListener(new OnClickListener() {
@@ -120,6 +126,7 @@ public class LinkViewerActivity extends Activity {
 		viewBitmap.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 		viewBitmap.setAdjustViewBounds(true);
 		viewBitmap.setImageBitmap(bitmap);
+		refreshVoteIndicators(redditLink); 
 		
 		fadeTask = new AsyncTask<Void, Integer, Void>() {
 
@@ -143,6 +150,19 @@ public class LinkViewerActivity extends Activity {
 			
 		};
 		fadeTask.execute(null);
+	}
+
+	private void refreshVoteIndicators(RedditLink redditLink) {
+		if(RedditClient.UPVOTE.equals(redditLink.getVoteStatus())) {
+			viewUpvote.setAlpha(255);
+			viewDownvote.setAlpha(0);
+		} else if(RedditClient.DOWNVOTE.equals(redditLink.getVoteStatus())) {
+			viewUpvote.setAlpha(0);
+			viewDownvote.setAlpha(255);
+		} else {
+			viewUpvote.setAlpha(0);
+			viewDownvote.setAlpha(0);
+		}
 	}
 
 	@Override
@@ -214,12 +234,12 @@ public class LinkViewerActivity extends Activity {
 		case R.id.menuitem_upvote:
 			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
-			loadImage();
+			refreshVoteIndicators(currentLink);
 			return true;
 		case R.id.menuitem_downvote:
 			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
-			loadImage();
+			refreshVoteIndicators(currentLink);
 			return true;
 		case R.id.menuitem_openimg:
 			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
