@@ -79,7 +79,7 @@ public class ImageCache {
 	
 	private Bitmap getFromDisk(String url) {
 		Bitmap result = null;
-		File img = new File(reddimgDir, urlToFilename(url));
+		File img = new File(getImageDiskPath(url));
 		if (img.exists()) {
 			try {
 				FileInputStream is = new FileInputStream(img);
@@ -121,7 +121,7 @@ public class ImageCache {
 				if (!enoughSpace) {
 					Log.w(ReddimgApp.APP_NAME, "Insufficient space on disk to store " + url);
 				} else {
-					File img = new File(reddimgDir, urlToFilename(url));
+					File img = new File(getImageDiskPath(url));
 					is = connection.getInputStream();
 					out = new FileOutputStream(img);
 					byte buf[] = new byte[1024];
@@ -196,13 +196,13 @@ public class ImageCache {
 		}
 	}
 
-	private static String urlToFilename(String url) {
+	public String getImageDiskPath(String url) {
 		url = FILE_PREFIX + url; 
 		if(url.length() > 256) {
 			url = url.substring(url.length() - 256);
 		}
 		url = url.replaceAll("[\\W&&[^.]]+", "_");
-		return url;
+		return reddimgDir.getAbsolutePath() + "/" + url;
 	}
 
 }

@@ -1,14 +1,21 @@
 package net.acuttone.reddimg;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -176,5 +183,60 @@ public class LinkViewerActivity extends Activity {
 		textViewTitle.setText(sb.toString());
 		int size = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "24"));
 		textViewTitle.setTextSize(size);
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = new MenuInflater(this);
+		inflater.inflate(R.menu.menu_linkviewer, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem upvoteItem = menu.findItem(R.id.menuitem_upvote);
+		MenuItem downvoteItem = menu.findItem(R.id.menuitem_downvote);
+		if(ReddimgApp.instance().getRedditClient().isLoggedIn()) {
+			upvoteItem.setEnabled(true);
+			downvoteItem.setEnabled(true);
+		} else {
+			upvoteItem.setEnabled(false);
+			downvoteItem.setEnabled(false);
+		}
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		RedditLink currentLink = null;
+		Intent intent = null;
+		switch (item.getItemId()) {
+		case R.id.menuitem_upvote:
+			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
+			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
+			loadImage();
+			return true;
+		case R.id.menuitem_downvote:
+			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
+			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
+			loadImage();
+			return true;
+		case R.id.menuitem_openimg:
+			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
+			String imageDiskPath = ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl());
+			Uri uri = Uri.parse("file://" + imageDiskPath);
+			intent = new Intent();
+			intent.setAction(Intent.ACTION_VIEW);
+			intent.setDataAndType(uri, "image/*");
+			startActivity(intent);
+			return true;
+		case R.id.menuitem_opencomments:
+			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
+			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentLink.getCommentUrl() + ".compact"));
+			startActivity(intent);
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
 	}
 }

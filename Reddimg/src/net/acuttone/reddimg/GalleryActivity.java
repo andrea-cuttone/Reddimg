@@ -14,10 +14,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -123,6 +127,45 @@ public class GalleryActivity extends Activity {
 		return position == PICS_PER_PAGE;
 	}
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = new MenuInflater(this);
+		inflater.inflate(R.menu.menu_gallery, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem loginItem = menu.findItem(R.id.menuitem_login);
+		if(ReddimgApp.instance().getRedditClient().isLoggedIn()) {
+			loginItem.setTitle("Logout");
+		} else {
+			loginItem.setTitle("Login");
+		}
+		return super.onPrepareOptionsMenu(menu);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Intent intent = null;
+		switch (item.getItemId()) {
+		case R.id.menuitem_login:
+			if (ReddimgApp.instance().getRedditClient().isLoggedIn()) {
+				ReddimgApp.instance().getRedditClient().doLogout();
+			} else {
+				intent = new Intent(this, LoginActivity.class);
+				startActivity(intent);
+			}
+			return true;
+		case R.id.menuitem_settings:
+			intent = new Intent(this, PrefsActivity.class);
+			startActivity(intent);
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
+	}
+	
 	private class GridItem {
 		
 		private RedditLink redditLink;
@@ -209,4 +252,5 @@ public class GalleryActivity extends Activity {
 		super.onDestroy();
 		// TODO: dispose griditems
 	}
+	
 }

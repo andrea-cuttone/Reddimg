@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menuitem_login"
+          android:title="Login"
+          android:icon="@drawable/ic_menu_login" />
+    <item android:id="@+id/menuitem_settings"
+          android:title="Settings"
+          android:icon="@android:drawable/ic_menu_manage" />    
+</menu>
