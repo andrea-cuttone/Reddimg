@@ -34,6 +34,7 @@ public class LinkViewerActivity extends Activity {
 	private AsyncTask<Void,Integer,Void> fadeTask;
 	private ImageView viewUpvote;
 	private ImageView viewDownvote;
+	private TextView textviewLoading;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,8 @@ public class LinkViewerActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.linkviewer);
 		textViewTitle = (TextView) findViewById(R.id.textViewTitle);
+		textviewLoading = (TextView) findViewById(R.id.textviewLoading);
+		textviewLoading.setText("");
 		viewBitmap = (ImageView) findViewById(R.id.scrollViewLink).findViewById(R.id.imageViewLink);
 		viewUpvote = (ImageView) findViewById(R.id.imageupvote);
 		viewUpvote.setAlpha(0);
@@ -74,7 +77,6 @@ public class LinkViewerActivity extends Activity {
 	
 	private void loadImage() {
 		AsyncTask<Integer, RedditLink, Object[]> loadTask = new AsyncTask<Integer, RedditLink, Object[]>() {
-			private ProgressDialog progressDialog;
 
 			@Override
 			protected void onPreExecute() {
@@ -82,13 +84,10 @@ public class LinkViewerActivity extends Activity {
 				if(fadeTask != null) {
 					fadeTask.cancel(true);
 				}
-				
+				textviewLoading.setText("Loading links...");
 				viewLeftArrow.setAlpha(0);
 				viewRightArrow.setAlpha(0);
-				
 				recycleBitmap();
-				
-				progressDialog = ProgressDialog.show(LinkViewerActivity.this, "Reddimg", "Loading links...");
 			}
 
 			@Override
@@ -105,17 +104,17 @@ public class LinkViewerActivity extends Activity {
 			@Override
 			protected void onProgressUpdate(RedditLink... values) {
 				super.onProgressUpdate(values);
-				updateTitle(values[0]);
-				progressDialog.setMessage("Loading image...");
+				RedditLink link = values[0];
+				updateTitle(link);
+				textviewLoading.setText("Loading " + link.getUrl());
 			}
 
 			@Override
 			protected void onPostExecute(Object[] result) {
 				super.onPostExecute(result);
-				progressDialog.dismiss();
+				textviewLoading.setText("");
 				Bitmap bitmap = (Bitmap) ((Object []) result)[0];
 				RedditLink redditLink = (RedditLink) ((Object []) result)[1];
-				
 				applyImage(bitmap, redditLink);
 			}
 		};
