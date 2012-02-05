@@ -8,13 +8,12 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,13 +33,14 @@ import android.widget.ImageView;
 
 public class GalleryActivity extends Activity {
 	private static final int PICS_PER_PAGE = 12;
+	private static final String PAGE_NUMBER = "PAGE_NUMBER";
 
 	private int thumbSize;
 	private int page;
-
 	private Paint paint;
-
 	private Random rnd;
+	private GridView gridView;
+	private AsyncTask<Integer, Void, Void> loadLinksTask;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -51,10 +51,9 @@ public class GalleryActivity extends Activity {
 		setContentView(R.layout.gallery);
 		
 		rnd = new Random();
-		thumbSize = ReddimgApp.instance().getScreenW() / 2;
-		page = 0;
+		page = savedInstanceState == null ? 0 : savedInstanceState.getInt(PAGE_NUMBER);
 		
-		GridView gridView = (GridView) findViewById(R.id.MyGrid);
+		gridView = (GridView) findViewById(R.id.gridview_gallery);
 		gridView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
@@ -76,14 +75,27 @@ public class GalleryActivity extends Activity {
 		
 		loadLinks();
 	}
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putInt(PAGE_NUMBER, page);
+		super.onSaveInstanceState(outState);
+	}
 
 	public void loadLinks() {
+		int numCols = 2;
+		if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			numCols = 4;
+		}
+		gridView.setNumColumns(numCols);
+		thumbSize = ReddimgApp.instance().getScreenW() / numCols;
+		
 		final List<GridItem> items = new ArrayList<GridItem>();
 		final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, items);
-		GridView gridView = (GridView) findViewById(R.id.MyGrid);
 		gridView.setAdapter(imageAdapter);
 		final ProgressDialog progressDialog = ProgressDialog.show(this, "Reddimg", "Fetching links...");
-		AsyncTask<Integer, Void, Void> loadLinksTask = new AsyncTask<Integer, Void, Void>() {
+		cleanup();
+		loadLinksTask = new AsyncTask<Integer, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Integer... params) {
@@ -99,6 +111,9 @@ public class GalleryActivity extends Activity {
 
 				publishProgress(null);
 				for (GridItem item : items) {
+					if(isCancelled()) {
+						break;
+					}
 					if(item != null && item.getRedditLink() != null) {
 						item.getRedditLink().prepareThumb(thumbSize);
 						publishProgress(null);
@@ -110,6 +125,9 @@ public class GalleryActivity extends Activity {
 			@Override
 			protected void onProgressUpdate(Void... values) {
 				super.onProgressUpdate(values);
+				if(isCancelled()) {
+					return;
+				}
 				if(progressDialog.isShowing()) {
 					progressDialog.dismiss();
 				}
@@ -118,7 +136,7 @@ public class GalleryActivity extends Activity {
 		};
 		loadLinksTask.execute(page);
 	}
-	
+
 	public boolean isRightButton(int position) {
 		return position == PICS_PER_PAGE + 1;
 	}
@@ -166,6 +184,24 @@ public class GalleryActivity extends Activity {
 		}
 	}
 	
+	private void cleanup() {
+		if(loadLinksTask != null) {
+			loadLinksTask.cancel(true);
+			int startPos = page * PICS_PER_PAGE;
+			int endPos = (page + 1) * PICS_PER_PAGE;
+			for (int i = startPos; i < endPos; i++) {
+				ReddimgApp.instance().getLinksQueue().get(i).setThumb(null);
+			}
+			((ImageAdapter) gridView.getAdapter()).notifyDataSetChanged();
+		}
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		cleanup();
+	}
+	
 	private class GridItem {
 		
 		private RedditLink redditLink;
@@ -199,7 +235,7 @@ public class GalleryActivity extends Activity {
 			// TODO
 		}
 	}
-
+	
 	private class ImageAdapter extends BaseAdapter {
 		private Context context;
 		private List<GridItem> items;
@@ -245,12 +281,6 @@ public class GalleryActivity extends Activity {
 		public long getItemId(int arg0) {
 			return 0;
 		}
-	}
-	
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		// TODO: dispose griditems
 	}
 	
 }

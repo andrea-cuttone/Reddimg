@@ -74,11 +74,15 @@ public class RedditLink {
 	}
 	
 	public void setThumb(Bitmap thumb) {
+		if(this.thumb != null && this.thumb.isRecycled() == false) {
+			this.thumb.recycle();
+		}
 		this.thumb = thumb;
 	}
 	
 	public void prepareThumb(int size) {
-		if (thumb == null || thumb.isRecycled()) {
+		if (thumb == null || thumb.isRecycled() || thumb.getWidth() != size) {
+			setThumb(null);
 			Bitmap bmpFullSize = ReddimgApp.instance().getImageCache().getImage(getUrl());
 			if (bmpFullSize != null) {
 				Bitmap bmpSquared = bmpFullSize;
@@ -96,7 +100,7 @@ public class RedditLink {
 					}
 				}
 				try {
-					thumb = Bitmap.createScaledBitmap(bmpSquared, size, size, true);
+					setThumb(Bitmap.createScaledBitmap(bmpSquared, size, size, true));
 					bmpSquared.recycle();
 				} catch (Throwable e) {
 					Log.w(ReddimgApp.APP_NAME, e.toString());
