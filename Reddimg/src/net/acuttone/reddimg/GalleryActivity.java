@@ -22,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -30,6 +31,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 public class GalleryActivity extends Activity {
 	private static final int PICS_PER_PAGE = 12;
@@ -41,6 +43,8 @@ public class GalleryActivity extends Activity {
 	private Random rnd;
 	private GridView gridView;
 	private AsyncTask<Integer, Void, Void> loadLinksTask;
+	private ImageView imgviewLeft;
+	private ImageView imgviewRight;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -59,17 +63,30 @@ public class GalleryActivity extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				Log.d(ReddimgApp.APP_NAME, "" + position);
-				if(isLeftButton(position)) {
-					page = Math.max(0, page - 1);
+				Intent i = new Intent(getApplicationContext(), LinkViewerActivity.class);
+				i.putExtra(LinkViewerActivity.LINK_INDEX, page * PICS_PER_PAGE + position);
+				startActivity(i);
+			}
+		});
+		
+		imgviewLeft = (ImageView) findViewById(R.id.imageview_leftarrow);
+		imgviewLeft.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if(page > 0) {
+					page--;
 					loadLinks();
-				} else if(isRightButton(position)) {
-					page++;
-					loadLinks();
-				} else {
-					Intent i = new Intent(getApplicationContext(), LinkViewerActivity.class);
-					i.putExtra(LinkViewerActivity.LINK_INDEX, page * PICS_PER_PAGE + position);
-					startActivity(i);
 				}
+			}
+		});
+		imgviewRight = (ImageView) findViewById(R.id.imageview_rightarrow);
+		imgviewRight.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				page++;
+				loadLinks();
 			}
 		});
 		
@@ -90,6 +107,12 @@ public class GalleryActivity extends Activity {
 		gridView.setNumColumns(numCols);
 		thumbSize = ReddimgApp.instance().getScreenW() / numCols;
 		
+		if(page == 0) {
+			imgviewLeft.setAlpha(0);
+		} else {
+			imgviewLeft.setAlpha(255);
+		}
+		
 		final List<GridItem> items = new ArrayList<GridItem>();
 		final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, items);
 		gridView.setAdapter(imageAdapter);
@@ -105,10 +128,6 @@ public class GalleryActivity extends Activity {
 				for (int i = startPos; i < endPos; i++) {
 					items.add(new GridItem(ReddimgApp.instance().getLinksQueue().get(i)));
 				}
-				// empty items for the arrows
-				items.add(null);
-				items.add(null);
-
 				publishProgress(null);
 				for (GridItem item : items) {
 					if(isCancelled()) {
@@ -137,14 +156,6 @@ public class GalleryActivity extends Activity {
 		loadLinksTask.execute(page);
 	}
 
-	public boolean isRightButton(int position) {
-		return position == PICS_PER_PAGE + 1;
-	}
-
-	public boolean isLeftButton(int position) {
-		return position == PICS_PER_PAGE;
-	}
-	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = new MenuInflater(this);
@@ -262,13 +273,7 @@ public class GalleryActivity extends Activity {
 			LayoutInflater li = getLayoutInflater();
 			view = li.inflate(R.layout.grid_item, null);
 			ImageView iv = (ImageView) view.findViewById(R.id.grid_item_image);
-			if (isLeftButton(position)) {
-				iv.setImageResource(R.drawable.left_arrow);
-			} else if (isRightButton(position)) {
-				iv.setImageResource(R.drawable.right_arrow);
-			} else {
-				iv.setImageBitmap(items.get(position).getThumb());
-			}
+			iv.setImageBitmap(items.get(position).getThumb());
 			return view;
 		}
 
