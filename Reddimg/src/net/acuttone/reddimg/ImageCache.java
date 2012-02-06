@@ -17,6 +17,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
+import android.os.StatFs;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -24,6 +26,7 @@ public class ImageCache {
 	private static final int MEGABYTE = 1000000;
 	private static final int MAX_IMAGE_SIZE = 1 * MEGABYTE;
 	private static final long MAX_INTERNAL_CACHE_SIZE = 2 * MEGABYTE;
+	private static final long MIN_FREE_SPACE = 5 * MEGABYTE;
 	private static final String FILE_PREFIX = "__RDIMG_";
 	
 	private File reddimgDir;
@@ -182,8 +185,10 @@ public class ImageCache {
 				oldest.delete();
 			}
 		}
+		StatFs stat = new StatFs(reddimgDir.getPath());
+		double freeSpace = (double)stat.getAvailableBlocks() *(double)stat.getBlockSize();
 		
-		return totSize < cacheSize;
+		return totSize < cacheSize && freeSpace > MIN_FREE_SPACE;
 	}
 
 	private long getCacheSize() {		

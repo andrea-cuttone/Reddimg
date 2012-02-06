@@ -1,9 +1,6 @@
 package net.acuttone.reddimg;
 
-import java.io.File;
-
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -142,8 +139,10 @@ public class LinkViewerActivity extends Activity {
 			
 			@Override
 			protected void onProgressUpdate(Integer... values) {
-				viewLeftArrow.setAlpha(values[0]);
-				viewRightArrow.setAlpha(values[0]);
+				if(isCancelled() == false) {
+					viewLeftArrow.setAlpha(values[0]);
+					viewRightArrow.setAlpha(values[0]);
+				}
 				super.onProgressUpdate(values);
 			}
 			
