@@ -1,39 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="match_parent" android:layout_height="match_parent"
-	android:orientation="vertical">
-	<TextView android:text="" android:id="@+id/textViewTitle"
-		android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
-		android:layout_width="match_parent"></TextView>
-	<FrameLayout android:id="@+id/framelayout"
-		android:layout_height="fill_parent" android:layout_width="fill_parent"
-		android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
-		<ScrollView android:layout_width="match_parent" android:id="@+id/scrollViewLink"
-			android:layout_height="match_parent" android:layout_alignParentTop="true"
-			android:layout_alignParentLeft="true" android:layout_above="@+id/button1"
-			android:layout_alignParentRight="true"
-			android:scrollbarAlwaysDrawVerticalTrack="true">
-			<LinearLayout android:id="@+id/linearLayout1"
-				android:layout_width="match_parent" android:layout_height="match_parent"
-				android:gravity="top">
-				<ImageView android:gravity="top" android:layout_height="match_parent"
-					android:id="@+id/imageViewLink" android:layout_width="match_parent"></ImageView>
-			</LinearLayout>
-		</ScrollView>
-		<ImageView android:layout_gravity="center_vertical|left" android:layout_height="wrap_content"
-			android:id="@+id/imageleftarrow" android:layout_width="wrap_content"
-			android:src="@drawable/left_arrow"></ImageView>
-		<ImageView android:layout_gravity="center_vertical|right" android:layout_height="wrap_content"
-			android:id="@+id/imagerightarrow" android:layout_width="wrap_content"
-			android:src="@drawable/right_arrow"></ImageView>
-		<ImageView android:layout_gravity="top|right" android:layout_height="wrap_content"
-			android:id="@+id/imageupvote" android:layout_width="wrap_content"
-			android:src="@drawable/upvote"></ImageView>
-		<ImageView android:layout_gravity="top|right" android:layout_height="wrap_content"
-			android:id="@+id/imagedownvote" android:layout_width="wrap_content"
-			android:src="@drawable/downvote"></ImageView>
-		<TextView android:text="" android:id="@+id/textviewLoading" android:layout_gravity="center"
-			android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceMedium"
-			android:layout_width="wrap_content" android:layout_marginLeft="64dp" android:layout_marginRight="64dp"></TextView>
-	</FrameLayout>
-</LinearLayout>
+<FrameLayout android:id="@+id/framelayout1"
+	android:layout_height="fill_parent" android:layout_width="fill_parent"
+	android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:layout_width="match_parent" android:layout_height="match_parent"
+		android:orientation="vertical">
+		<TextView android:text="" android:id="@+id/textViewTitle"
+			android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
+			android:layout_width="match_parent"></TextView>
+		<FrameLayout android:id="@+id/framelayout2"
+			android:layout_height="fill_parent" android:layout_width="fill_parent"
+			android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
+			<ScrollView android:layout_width="match_parent"
+				android:id="@+id/scrollViewLink" android:layout_height="match_parent"
+				android:layout_alignParentTop="true" android:layout_alignParentLeft="true"
+				android:layout_above="@+id/button1" android:layout_alignParentRight="true"
+				android:scrollbarAlwaysDrawVerticalTrack="true">
+				<LinearLayout android:id="@+id/linearLayout1"
+					android:layout_width="match_parent" android:layout_height="match_parent"
+					android:gravity="top">
+					<ImageView android:gravity="top" android:layout_height="match_parent"
+						android:id="@+id/imageViewLink" android:layout_width="match_parent"></ImageView>
+				</LinearLayout>
+			</ScrollView>
+			<ImageView android:layout_gravity="top|right"
+				android:layout_height="wrap_content" android:id="@+id/imageupvote"
+				android:layout_width="wrap_content" android:src="@drawable/upvote"></ImageView>
+			<ImageView android:layout_gravity="top|right"
+				android:layout_height="wrap_content" android:id="@+id/imagedownvote"
+				android:layout_width="wrap_content" android:src="@drawable/downvote"></ImageView>
+			<TextView android:text="" android:id="@+id/textviewLoading"
+				android:layout_gravity="center" android:layout_height="wrap_content"
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:layout_width="wrap_content" android:layout_marginLeft="64dp"
+				android:layout_marginRight="64dp"></TextView>
+		</FrameLayout>
+	</LinearLayout>
+	<ImageView android:layout_gravity="center_vertical|left" android:layout_marginTop="32dp"
+		android:layout_height="wrap_content" android:id="@+id/imageleftarrow"
+		android:layout_width="wrap_content" android:src="@drawable/left_arrow"></ImageView>
+	<ImageView android:layout_gravity="center_vertical|right" android:layout_marginTop="32dp"
+		android:layout_height="wrap_content" android:id="@+id/imagerightarrow"
+		android:layout_width="wrap_content" android:src="@drawable/right_arrow"></ImageView>
+</FrameLayout>
