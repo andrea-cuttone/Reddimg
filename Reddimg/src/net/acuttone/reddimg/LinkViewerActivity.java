@@ -81,7 +81,8 @@ public class LinkViewerActivity extends Activity {
 				if(fadeTask != null) {
 					fadeTask.cancel(true);
 				}
-				textviewLoading.setText("Loading links...");
+				textviewLoading.setText("Loading links from "
+						+ ReddimgApp.instance().getLinksQueue().getCurrentSubreddit());
 				viewLeftArrow.setAlpha(0);
 				viewRightArrow.setAlpha(0);
 				recycleBitmap();

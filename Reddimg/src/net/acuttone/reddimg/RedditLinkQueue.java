@@ -47,6 +47,10 @@ public class RedditLinkQueue {
 		}
 		return links.get(index);
 	}	
+	
+	public String getCurrentSubreddit() {
+		return subredditsList.get(nextSubredditIndex);
+	}
 
 	private void getNewLinks() {
 		String subreddit = subredditsList.get(nextSubredditIndex);

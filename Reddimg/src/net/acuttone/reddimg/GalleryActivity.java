@@ -116,7 +116,8 @@ public class GalleryActivity extends Activity {
 		final List<GridItem> items = new ArrayList<GridItem>();
 		final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, items);
 		gridView.setAdapter(imageAdapter);
-		final ProgressDialog progressDialog = ProgressDialog.show(this, "Reddimg", "Fetching links...");
+		final ProgressDialog progressDialog = ProgressDialog.show(this, "Reddimg", "Fetching links from "
+				+ ReddimgApp.instance().getLinksQueue().getCurrentSubreddit());
 		cleanup();
 		loadLinksTask = new AsyncTask<Integer, Void, Void>() {
 

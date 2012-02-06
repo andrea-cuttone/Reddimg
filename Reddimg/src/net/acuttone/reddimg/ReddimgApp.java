@@ -15,7 +15,6 @@ public class ReddimgApp extends Application {
 	private ImageCache imageCache;
 	private int screenW;
 	private int screenH;
-	//private ImagePrefetcher imagePrefetcher;
 
 	private RedditClient redditClient;
 
@@ -30,9 +29,7 @@ public class ReddimgApp extends Application {
 		redditClient = new RedditClient(getCacheDir());
 		linksQueue = new RedditLinkQueue();
 		loadScreenSize();
-		imageCache = new ImageCache(this);
-		//imagePrefetcher = new ImagePrefetcher(imageCache, linksQueue);
-		//imagePrefetcher.start();		
+		imageCache = new ImageCache(this);	
 	}
 
 	public void loadScreenSize() {
@@ -60,10 +57,6 @@ public class ReddimgApp extends Application {
 		loadScreenSize();
 		return screenH;
 	}
-
-//	public ImagePrefetcher getImagePrefetcher() {
-//		return imagePrefetcher;
-//	}
 
 	public RedditClient getRedditClient() {
 		return redditClient;
