@@ -2,7 +2,6 @@ package net.acuttone.reddimg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import android.app.Activity;
@@ -14,19 +13,15 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class SubredditsPickerActivity extends Activity {
@@ -52,9 +47,7 @@ public class SubredditsPickerActivity extends Activity {
 		listView = (ListView) findViewById(R.id.subredditpicker_listView);
 		btnNew = (Button) findViewById(R.id.subredditpicker_btnnew);
 
-		List<String> names = getSubredditsFromPref(getBaseContext());
-
-		arrayAdapter = new SubredditArrayAdapter(this, names);
+		arrayAdapter = new SubredditArrayAdapter(this, new ArrayList<String>(), R.drawable.minus);
 		listView.setAdapter(arrayAdapter);
 
 		btnNew.setOnClickListener(new OnClickListener() {
@@ -72,17 +65,29 @@ public class SubredditsPickerActivity extends Activity {
 			}
 		});
 
-		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
+		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				selectedItem = arrayAdapter.getItem((int) id);
 				showDialog(DELETE_CONFIRMATION_DLG, null);
-				return true;
 			}
 		});
 	}
-
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		arrayAdapter.getSubreddits().clear();
+		arrayAdapter.getSubreddits().addAll(getSubredditsFromPref(getBaseContext()));
+		arrayAdapter.notifyDataSetChanged();
+	}
+	
 	public static List<String> getSubredditsFromPref(Context context) {
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 		String subreddits = sp.getString(SUBREDDITS_LIST_KEY, getDefaultSubreddits());
@@ -101,15 +106,19 @@ public class SubredditsPickerActivity extends Activity {
 		return result;
 	}
 
-	@Override
-	protected void onStop() {
-		super.onStop();
+//	@Override
+//	protected void onStop() {
+//		super.onStop();
+//		saveSubreddits(getBaseContext(), arrayAdapter.getSubreddits());
+//	}
+
+	public static void saveSubreddits(Context context, List<String> subreddits) {
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < arrayAdapter.getCount(); i++) {
-			sb.append(arrayAdapter.getItem(i));
+		for (int i = 0; i < subreddits.size(); i++) {
+			sb.append(subreddits.get(i));
 			sb.append(STRING_SEPARATOR);
 		}
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 		Editor editor = sp.edit();
 		editor.putString(SUBREDDITS_LIST_KEY, sb.toString());
 		editor.commit();
@@ -118,7 +127,7 @@ public class SubredditsPickerActivity extends Activity {
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
 		if (DELETE_CONFIRMATION_DLG == id) {
-			((AlertDialog) dialog).setMessage("Do you want to delete '" + selectedItem + "'?");
+			((AlertDialog) dialog).setMessage("Do you want to remove '" + selectedItem + "' from your subreddits?");
 		}
 		super.onPrepareDialog(id, dialog);
 	}
@@ -132,6 +141,7 @@ public class SubredditsPickerActivity extends Activity {
 			builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
 					arrayAdapter.remove(selectedItem);
+					saveSubreddits(getBaseContext(), arrayAdapter.getSubreddits());
 					arrayAdapter.notifyDataSetChanged();
 				}
 			});
@@ -145,33 +155,5 @@ public class SubredditsPickerActivity extends Activity {
 			return builder.create();
 		}
 		return super.onCreateDialog(id, args);
-	}
-
-	public class SubredditArrayAdapter extends ArrayAdapter<String> {
-		private final Activity context;
-		private final List<String> subreddits;
-
-		public SubredditArrayAdapter(Activity context, List<String> names) {
-			super(context, R.layout.subredditlistview, names);
-			this.context = context;
-			this.subreddits = names;
-		}
-
-		@Override
-		public void add(String object) {
-			if (subreddits.contains(object) == false) {
-				subreddits.add(object);
-				Collections.sort(subreddits);
-			}
-		}
-
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			LayoutInflater inflater = context.getLayoutInflater();
-			View itemView = inflater.inflate(R.layout.subredditlistview, null, true);
-			TextView textView = (TextView) itemView.findViewById(R.id.subredditlistview_textview);
-			textView.setText(subreddits.get(position));
-			return itemView;
-		}
 	}
 }
