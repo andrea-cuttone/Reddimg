@@ -32,10 +32,14 @@
 			android:entryValues="@array/titleSizeValues"></ListPreference> 
 	</PreferenceCategory>
 	<PreferenceCategory android:title="Cache">
-			<EditTextPreference android:key="sd_cache_size"
-        						android:title="SD cache size" 
+			<EditTextPreference android:key="cache_size"
+        						android:title="Max cache size" 
         						android:defaultValue="10"
         						android:inputType="number"
-        						android:maxLength="4" /> 
+        						android:maxLength="4" />
+        	<Preference
+                android:title="Clear cache"
+                android:summary=""
+                android:key="pref_clear_cache" /> 
 	</PreferenceCategory>
 </PreferenceScreen>

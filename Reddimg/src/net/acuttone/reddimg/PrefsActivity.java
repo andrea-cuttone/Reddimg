@@ -6,15 +6,15 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 public class PrefsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
-	public static final String DEFAULT_SD_CACHE_SIZE = "10";
-	public final static String SD_CACHE_SIZE_KEY = "sd_cache_size";
+	public static final String DEFAULT_CACHE_SIZE = "10";
+	public final static String CACHE_SIZE_KEY = "cache_size";
 	public static final String TITLE_SIZE_KEY = "titleSize";
 	public static final String SUBREDDIT_MODE_KEY = "subredditMode";
 	public final static String SUBREDDITMODE_FRONTPAGE = "Front page";
@@ -24,6 +24,7 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	private ListPreference subredditModePref;
 	private ListPreference titleSizePref;
 	private boolean subredditsChanged;
+	private Preference clearCachePref;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +35,25 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 		subredditModePref = (ListPreference) findPreference(SUBREDDIT_MODE_KEY);
 		titleSizePref = (ListPreference) findPreference(TITLE_SIZE_KEY);
 		subredditsChanged = false;
+		clearCachePref = (Preference) findPreference("pref_clear_cache");
+		updateCurrentCacheSizeText();
+		clearCachePref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+			
+			@Override
+			public boolean onPreferenceClick(Preference preference) {
+				ReddimgApp.instance().getImageCache().clearCache();
+				updateCurrentCacheSizeText();
+				return true;
+			}
+
+		});
+	}
+
+	private void updateCurrentCacheSizeText() {
+		String text = "Current size: ";
+		text += String.format("%.1f", ReddimgApp.instance().getImageCache().getCurrentCacheSize());
+		text += " MB";
+		clearCachePref.setSummary(text);
 	}
 	
 	@Override
@@ -66,8 +86,8 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	    	subredditsChanged = true;
 	    }
 	    
-	    if(SD_CACHE_SIZE_KEY.equals(key)) {
-	    	int size = Integer.parseInt(sharedPreferences.getString(key, DEFAULT_SD_CACHE_SIZE));
+	    if(CACHE_SIZE_KEY.equals(key)) {
+	    	int size = Integer.parseInt(sharedPreferences.getString(key, DEFAULT_CACHE_SIZE));
 	    	if(size < 1) {
 	    		Editor editor = sharedPreferences.edit();
 	    		editor.putString(key, "1");

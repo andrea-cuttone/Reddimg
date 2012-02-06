@@ -25,13 +25,11 @@ import android.util.Log;
 public class ImageCache {
 	private static final int MEGABYTE = 1000000;
 	private static final int MAX_IMAGE_SIZE = 1 * MEGABYTE;
-	private static final long MAX_INTERNAL_CACHE_SIZE = 2 * MEGABYTE;
 	private static final long MIN_FREE_SPACE = 5 * MEGABYTE;
 	private static final String FILE_PREFIX = "__RDIMG_";
 	
 	private File reddimgDir;
 	private TreeSet<File> diskCacheFiles;
-	private boolean useSD;
 	
 	public ImageCache(Context context) {
 		initDiskCache(context);
@@ -41,9 +39,7 @@ public class ImageCache {
 		reddimgDir = context.getExternalCacheDir();
 		if(reddimgDir == null) {
 			reddimgDir = context.getCacheDir();
-			useSD = false;
 		} else {
-			useSD = true;
 		}
 		
 		diskCacheFiles = new TreeSet<File>(new Comparator<File>() {
@@ -166,13 +162,13 @@ public class ImageCache {
 		return null;
 	}
 	
-	private boolean checkDiskCacheSize(int contentLength) {
+	private boolean checkDiskCacheSize(long contentLength) {
 		long totSize = contentLength;
 		for(File f : diskCacheFiles) {
 			totSize += f.length();
 		}
 
-		long cacheSize = getCacheSize();
+		long cacheSize = getMaxCacheSize();
 		while(totSize > cacheSize && diskCacheFiles.size() > 0) {
 			File oldest = diskCacheFiles.first();
 			totSize -= oldest.length();
@@ -190,15 +186,24 @@ public class ImageCache {
 		
 		return totSize < cacheSize && freeSpace > MIN_FREE_SPACE;
 	}
-
-	private long getCacheSize() {		
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
-		if(useSD) {
-			int size = Integer.parseInt(sp.getString(PrefsActivity.SD_CACHE_SIZE_KEY, PrefsActivity.DEFAULT_SD_CACHE_SIZE));
-			return size * MEGABYTE;
-		} else {
-			return MAX_INTERNAL_CACHE_SIZE;
+	
+	public double getCurrentCacheSize() {
+		double totSize = 0;
+		for(File f : diskCacheFiles) {
+			totSize += f.length();
 		}
+		return totSize / MEGABYTE;
+	}
+
+	private long getMaxCacheSize() {
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		int size = Integer.parseInt(sp.getString(PrefsActivity.CACHE_SIZE_KEY, PrefsActivity.DEFAULT_CACHE_SIZE));
+		return size * MEGABYTE;
+	}
+	
+	public void clearCache() {
+		// little innocent hack to make checkDiskCacheSize delete all the cached files
+		checkDiskCacheSize(Long.MAX_VALUE / 2);
 	}
 
 	public String getImageDiskPath(String url) {
