@@ -60,6 +60,7 @@ public class RedditClient {
 	
 	public RedditClient(File cacheDir) {
 		httpclient = new DefaultHttpClient();
+		httpclient.getParams().setParameter("http.useragent", "reddimg");
 		CookieStore cookieStore = new BasicCookieStore();
 		localContext = new BasicHttpContext();
 		localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
