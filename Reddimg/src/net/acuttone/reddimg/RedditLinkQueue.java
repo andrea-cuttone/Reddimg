@@ -23,13 +23,13 @@ public class RedditLinkQueue {
 		lastT3List = new ArrayList<String>();
 		subredditsList = new ArrayList<String>();
 
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		String mode = sp.getString(PrefsActivity.SUBREDDIT_MODE_KEY, PrefsActivity.SUBREDDITMODE_FRONTPAGE);
 		if (PrefsActivity.SUBREDDITMODE_MINE.equals(mode) &&
 			ReddimgApp.instance().getRedditClient().isLoggedIn()) {
 			subredditsList = ReddimgApp.instance().getRedditClient().getMySubreddits();
 		} else if (PrefsActivity.SUBREDDITMODE_MANUAL.equals(mode)) {
-			subredditsList = SubredditsPickerActivity.getSubredditsFromPref(ReddimgApp.instance());
+			subredditsList = SubredditsPickerActivity.getSubredditsFromPref();
 		}
 
 		if (subredditsList.isEmpty()) {

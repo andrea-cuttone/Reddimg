@@ -28,7 +28,7 @@ public class LoginActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.login);
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		SharedPreferences sharedPrefs = ReddimgApp.instance().getPrefs();
 		EditText etUsername = (EditText) findViewById(R.id.etUsername);
 		etUsername.setText(sharedPrefs.getString(PREF_USERNAME_KEY, ""));
 		Button button = (Button) findViewById(R.id.btnLogin);
@@ -40,6 +40,11 @@ public class LoginActivity extends Activity {
 			}
 
 		});
+		
+		// TODO: remove
+		etUsername.setText("t3rrordar");
+		EditText etPassword = (EditText) findViewById(R.id.etPassword);
+		etPassword.setText("matrix");
 	}
 
 	class LoginTask extends AsyncTask<Void, Void, Boolean> {
@@ -59,7 +64,7 @@ public class LoginActivity extends Activity {
 			String password = etPassword.getText().toString();
 			boolean success = ReddimgApp.instance().getRedditClient().doLogin(username, password);
 			if(success) {
-				SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+				SharedPreferences sharedPrefs = ReddimgApp.instance().getPrefs();
 				Editor editor = sharedPrefs.edit();
 				editor.putString(PREF_USERNAME_KEY, username);
 				editor.commit();

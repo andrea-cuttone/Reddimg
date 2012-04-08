@@ -6,11 +6,11 @@
 		android:orientation="horizontal" android:layout_width="match_parent"
 		android:layout_height="wrap_content">
 		<EditText android:layout_height="wrap_content" android:layout_width="wrap_content"
-			android:layout_weight="5" android:id="@+id/subredditpicker_edittextnew" >
+			android:layout_weight="1" android:id="@+id/subredditpicker_edittextnew" >
 			<requestFocus></requestFocus>
 		</EditText>
-		<Button android:layout_height="wrap_content" android:text="Add" android:layout_weight="1"
-			android:id="@+id/subredditpicker_btnnew" android:layout_width="wrap_content"></Button>
+		<Button android:layout_height="wrap_content" android:text="Add"
+			android:id="@+id/subredditpicker_btnnew" android:layout_width="50dp"></Button>
 
 	</LinearLayout>
 	<ListView android:layout_height="wrap_content"

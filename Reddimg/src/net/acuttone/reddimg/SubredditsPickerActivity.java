@@ -84,12 +84,12 @@ public class SubredditsPickerActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		arrayAdapter.getSubreddits().clear();
-		arrayAdapter.getSubreddits().addAll(getSubredditsFromPref(getBaseContext()));
+		arrayAdapter.getSubreddits().addAll(getSubredditsFromPref());
 		arrayAdapter.notifyDataSetChanged();
 	}
 	
-	public static List<String> getSubredditsFromPref(Context context) {
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+	public static List<String> getSubredditsFromPref() {
+		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		String subreddits = sp.getString(SUBREDDITS_LIST_KEY, getDefaultSubreddits());
 		List<String> names = new ArrayList<String>((Arrays.asList(subreddits.split(STRING_SEPARATOR))));
 		return names;
@@ -118,7 +118,7 @@ public class SubredditsPickerActivity extends Activity {
 			sb.append(subreddits.get(i));
 			sb.append(STRING_SEPARATOR);
 		}
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		Editor editor = sp.edit();
 		editor.putString(SUBREDDITS_LIST_KEY, sb.toString());
 		editor.commit();

@@ -188,7 +188,7 @@ public class LinkViewerActivity extends Activity {
 
 	public void updateTitle(RedditLink link) {
 		StringBuilder sb = new StringBuilder();
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		if(sp.getBoolean("showScore", false)) {
 			sb.append("[" + link.getScore() + "] ");
 		}

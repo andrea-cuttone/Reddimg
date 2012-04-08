@@ -1,5 +1,6 @@
 package net.acuttone.reddimg;
 
+import java.util.Collections;
 import java.util.List;
 
 import android.app.Activity;
@@ -30,7 +31,7 @@ public class UserSubredditsActivity extends Activity {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				SubredditArrayAdapter adapter = (SubredditArrayAdapter) listView.getAdapter();
 				String item = adapter.getItem((int) id);
-				List<String> subreddits = SubredditsPickerActivity.getSubredditsFromPref(getBaseContext());
+				List<String> subreddits = SubredditsPickerActivity.getSubredditsFromPref();
 				subreddits.add(item);
 				SubredditsPickerActivity.saveSubreddits(getBaseContext(), subreddits);
 			}
@@ -48,6 +49,7 @@ public class UserSubredditsActivity extends Activity {
 			@Override
 			protected List<String> doInBackground(Void... params) {
 				List<String> names = ReddimgApp.instance().getRedditClient().getMySubreddits();
+				Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
 				return names;
 			}
 

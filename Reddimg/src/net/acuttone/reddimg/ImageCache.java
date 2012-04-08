@@ -196,7 +196,7 @@ public class ImageCache {
 	}
 
 	private long getMaxCacheSize() {
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		int size = Integer.parseInt(sp.getString(PrefsActivity.CACHE_SIZE_KEY, PrefsActivity.DEFAULT_CACHE_SIZE));
 		return size * MEGABYTE;
 	}

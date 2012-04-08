@@ -93,7 +93,7 @@ public class RedditClient {
 			cookiesCacheDir.mkdir();
 		}
 
-		uh = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance()).getString(UH_KEY, "");
+		uh = ReddimgApp.instance().getPrefs().getString(UH_KEY, "");
 		if (!"".equals(uh)) {
 			Log.d(ReddimgApp.APP_NAME, "UH found");
 		} else {
@@ -197,7 +197,7 @@ public class RedditClient {
 	
 	private void saveLoginInfo(List<Cookie> cookies) {
 		// save uh
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		Editor edit = sp.edit();
 		edit.putString(UH_KEY, uh);
 		edit.commit();
@@ -226,7 +226,7 @@ public class RedditClient {
 	}
 	
 	public void doLogout() {
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ReddimgApp.instance());
+		SharedPreferences sharedPrefs = ReddimgApp.instance().getPrefs();
 		Editor edit = sharedPrefs.edit();
 		edit.remove(UH_KEY);
 		edit.commit();

@@ -2,6 +2,8 @@ package net.acuttone.reddimg;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
@@ -60,6 +62,10 @@ public class ReddimgApp extends Application {
 
 	public RedditClient getRedditClient() {
 		return redditClient;
+	}
+	
+	public SharedPreferences getPrefs() {
+		return PreferenceManager.getDefaultSharedPreferences(this);
 	}
     
 }

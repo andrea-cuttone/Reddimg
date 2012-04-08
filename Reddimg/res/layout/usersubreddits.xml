@@ -2,9 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical" android:layout_width="match_parent"
 	android:layout_height="match_parent">
-	<TextView android:text="" android:id="@+id/usersubreddits_textview"
-			android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
-			android:layout_width="match_parent"></TextView>
+	<Button android:layout_height="wrap_content" android:text="Refresh"
+			android:id="@+id/usersubreddits_btnrefresh" android:layout_width="fill_parent"></Button>
 	<ListView android:layout_height="wrap_content"
 		android:id="@+id/usersubreddits_listView" android:layout_width="match_parent"></ListView>
 </LinearLayout>
