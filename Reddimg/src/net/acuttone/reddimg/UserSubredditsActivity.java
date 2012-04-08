@@ -5,6 +5,8 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -12,9 +14,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 
-public class UserSubredditsActivity extends Activity {
+public class UserSubredditsActivity extends Activity implements OnSharedPreferenceChangeListener {
 	private ListView listView;
 
 	@Override
@@ -32,10 +35,14 @@ public class UserSubredditsActivity extends Activity {
 				SubredditArrayAdapter adapter = (SubredditArrayAdapter) listView.getAdapter();
 				String item = adapter.getItem((int) id);
 				List<String> subreddits = SubredditsPickerActivity.getSubredditsFromPref();
-				subreddits.add(item);
-				SubredditsPickerActivity.saveSubreddits(getBaseContext(), subreddits);
+				if(subreddits.contains(item) == false) {
+					subreddits.add(item);
+					SubredditsPickerActivity.saveSubreddits(subreddits);
+				}
 			}
 		});
+		
+		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		
 		AsyncTask<Void, Void, List<String>> loadTask = new AsyncTask<Void, Void, List<String>>() {
 
@@ -55,7 +62,7 @@ public class UserSubredditsActivity extends Activity {
 
 			@Override
 			protected void onPostExecute(List<String> result) {
-				SubredditArrayAdapter adapter = new SubredditArrayAdapter(UserSubredditsActivity.this, result, R.drawable.plus);
+				SubredditArrayAdapter adapter = new SubredditArrayAdapter(UserSubredditsActivity.this, result, R.drawable.plus, true);
 				listView.setAdapter(adapter);
 				progressDialog.dismiss();
 				super.onPostExecute(result);
@@ -63,5 +70,12 @@ public class UserSubredditsActivity extends Activity {
 			
 		};
 		loadTask.execute(null);
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if(SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
+			((SubredditArrayAdapter)(listView.getAdapter())).notifyDataSetChanged();
+		}
 	}	
 }

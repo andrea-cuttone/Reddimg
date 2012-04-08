@@ -13,21 +13,24 @@ import android.widget.TextView;
 
 public class SubredditArrayAdapter extends ArrayAdapter<String> {
 	private final Activity context;
-	private final List<String> subreddits;
+	private final List<String> mySubreddits;
+	private List<String> subredditsFromPref;
 	private int drawableId;
+	private boolean hideSelected;
 
-	public SubredditArrayAdapter(Activity context, List<String> names, int drawableId) {
+	public SubredditArrayAdapter(Activity context, List<String> names, int drawableId, boolean hideSelected) {
 		super(context, R.layout.subredditlistview, names);
 		this.context = context;
-		this.subreddits = names;
+		this.mySubreddits = names;
 		this.drawableId = drawableId;
+		this.hideSelected = hideSelected;
 	}
 
 	@Override
 	public void add(String object) {
-		if (subreddits.contains(object) == false) {
-			subreddits.add(object);
-			Collections.sort(subreddits, String.CASE_INSENSITIVE_ORDER);
+		if (mySubreddits.contains(object) == false) {
+			mySubreddits.add(object);
+			Collections.sort(mySubreddits, String.CASE_INSENSITIVE_ORDER);
 		}
 	}
 
@@ -36,13 +39,23 @@ public class SubredditArrayAdapter extends ArrayAdapter<String> {
 		LayoutInflater inflater = context.getLayoutInflater();
 		View itemView = inflater.inflate(R.layout.subredditlistview, null, true);
 		TextView textView = (TextView) itemView.findViewById(R.id.subredditlistview_textview);
-		textView.setText(subreddits.get(position));
+		String selected = mySubreddits.get(position);
+		textView.setText(selected);
 		ImageView imgview = (ImageView) itemView.findViewById(R.id.subredditlistview_imageview);
 		imgview.setImageResource(drawableId);
+		
+		if(hideSelected && SubredditsPickerActivity.getSubredditsFromPref().contains(selected)) {
+			imgview.setVisibility(View.INVISIBLE);
+		}
 		return itemView;
 	}
 
 	public List<String> getSubreddits() {
-		return subreddits;
+		return mySubreddits;
+	}
+	
+	@Override
+	public void notifyDataSetChanged() {
+		super.notifyDataSetChanged();
 	}
 }

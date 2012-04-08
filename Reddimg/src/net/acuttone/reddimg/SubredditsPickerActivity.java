@@ -47,7 +47,7 @@ public class SubredditsPickerActivity extends Activity {
 		listView = (ListView) findViewById(R.id.subredditpicker_listView);
 		btnNew = (Button) findViewById(R.id.subredditpicker_btnnew);
 
-		arrayAdapter = new SubredditArrayAdapter(this, new ArrayList<String>(), R.drawable.minus);
+		arrayAdapter = new SubredditArrayAdapter(this, new ArrayList<String>(), R.drawable.minus, false);
 		listView.setAdapter(arrayAdapter);
 
 		btnNew.setOnClickListener(new OnClickListener() {
@@ -59,7 +59,7 @@ public class SubredditsPickerActivity extends Activity {
 					arrayAdapter.add(SUBREDDIT_PREFIX + text);
 					arrayAdapter.notifyDataSetChanged();
 				} else {
-					Toast.makeText(getBaseContext(), "Invalid name!", Toast.LENGTH_SHORT);
+					Toast.makeText(getBaseContext(), "Invalid name!", Toast.LENGTH_SHORT).show();
 				}
 				editText.getText().clear();
 			}
@@ -112,7 +112,7 @@ public class SubredditsPickerActivity extends Activity {
 //		saveSubreddits(getBaseContext(), arrayAdapter.getSubreddits());
 //	}
 
-	public static void saveSubreddits(Context context, List<String> subreddits) {
+	public static void saveSubreddits(List<String> subreddits) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < subreddits.size(); i++) {
 			sb.append(subreddits.get(i));
@@ -141,7 +141,7 @@ public class SubredditsPickerActivity extends Activity {
 			builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
 					arrayAdapter.remove(selectedItem);
-					saveSubreddits(getBaseContext(), arrayAdapter.getSubreddits());
+					saveSubreddits(arrayAdapter.getSubreddits());
 					arrayAdapter.notifyDataSetChanged();
 				}
 			});
