@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application android:icon="@drawable/icon" android:label="@string/app_name" android:name="net.acuttone.reddimg.ReddimgApp">
-        <activity android:name=".HelloTabWidget"
+        <activity android:name=".SubredditsPrefsTab"
                   android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

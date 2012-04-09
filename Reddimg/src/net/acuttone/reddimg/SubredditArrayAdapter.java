@@ -1,6 +1,5 @@
 package net.acuttone.reddimg;
 
-import java.util.Collections;
 import java.util.List;
 
 import android.app.Activity;
@@ -14,7 +13,6 @@ import android.widget.TextView;
 public class SubredditArrayAdapter extends ArrayAdapter<String> {
 	private final Activity context;
 	private final List<String> mySubreddits;
-	private List<String> subredditsFromPref;
 	private int drawableId;
 	private boolean hideSelected;
 

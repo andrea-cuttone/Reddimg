@@ -7,12 +7,10 @@ import java.util.List;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -104,12 +102,6 @@ public class SubredditsPickerActivity extends Activity {
 		result = result.substring(0, result.length() - 1);
 		return result;
 	}
-
-//	@Override
-//	protected void onStop() {
-//		super.onStop();
-//		saveSubreddits(getBaseContext(), arrayAdapter.getSubreddits());
-//	}
 
 	public static void saveSubreddits(List<String> subreddits) {
 		StringBuilder sb = new StringBuilder();
