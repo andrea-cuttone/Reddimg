@@ -4,6 +4,9 @@
 	android:layout_height="match_parent">
 	<Button android:layout_height="wrap_content" android:text="Refresh"
 			android:id="@+id/usersubreddits_btnrefresh" android:layout_width="fill_parent"></Button>
+	<TextView android:layout_height="wrap_content" android:text="Please login to retrieve your subscribed subreddits"
+			android:id="@+id/usersubreddits_login_text" android:layout_width="fill_parent"
+			android:visibility="gone" android:textSize="20sp"></TextView>
 	<ListView android:layout_height="wrap_content"
 		android:id="@+id/usersubreddits_listView" android:layout_width="match_parent"></ListView>
 </LinearLayout>

@@ -50,6 +50,7 @@ public class UserSubredditsActivity extends Activity implements OnSharedPreferen
 			
 			@Override
 			public void onClick(View v) {
+				findViewById(R.id.usersubreddits_login_text).setVisibility(View.GONE);
 				refreshSubreddits();
 			}
 		});
@@ -79,6 +80,9 @@ public class UserSubredditsActivity extends Activity implements OnSharedPreferen
 				SubredditArrayAdapter adapter = new SubredditArrayAdapter(UserSubredditsActivity.this, result, R.drawable.plus, true);
 				listView.setAdapter(adapter);
 				progressDialog.dismiss();
+				if(result.size() == 0) {
+					findViewById(R.id.usersubreddits_login_text).setVisibility(View.VISIBLE);
+				}
 				super.onPostExecute(result);
 			}
 			

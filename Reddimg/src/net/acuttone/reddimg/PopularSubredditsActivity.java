@@ -27,7 +27,7 @@ public class PopularSubredditsActivity extends Activity implements OnSharedPrefe
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		setContentView(R.layout.usersubreddits);
+		setContentView(R.layout.popularsubreddits);
 
 		listView = (ListView) findViewById(R.id.usersubreddits_listView);
 		listView.setOnItemClickListener(new OnItemClickListener() {

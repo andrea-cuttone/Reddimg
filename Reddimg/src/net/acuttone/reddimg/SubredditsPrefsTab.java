@@ -22,7 +22,7 @@ public class SubredditsPrefsTab extends TabActivity {
 	    spec = tabHost.newTabSpec("Selected").setIndicator("Selected").setContent(intent);
 	    tabHost.addTab(spec);
 	    intent = new Intent().setClass(this, UserSubredditsActivity.class);
-	    spec = tabHost.newTabSpec("Mine").setIndicator("Mine").setContent(intent);
+	    spec = tabHost.newTabSpec("Subscribed").setIndicator("Subscribed").setContent(intent);
 	    tabHost.addTab(spec);
 	    intent = new Intent().setClass(this, PopularSubredditsActivity.class);
 	    spec = tabHost.newTabSpec("Popular").setIndicator("Popular").setContent(intent);
