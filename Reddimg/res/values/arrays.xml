@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <array name="subredditMode">
         <item>Front page</item>
         <item>My subreddits (only logged users)</item>
         <item>Manual selection</item>
     </array>
+
     <string-array name="titleSizeKeys">
         <item>Small</item>
         <item>Medium</item>
@@ -14,5 +16,27 @@
         <item>14</item>
         <item>22</item>
         <item>32</item>
+    </string-array>
+    <string-array name="default_subreddits">
+        <item>/r/funny/</item>
+        <item>/r/pics/</item>
+        <item>/r/aww/</item>
+        <item>/r/gifs/</item>
+    </string-array>
+    <string-array name="popular_subreddits">
+        <item>/r/comics/</item>
+        <item>/r/f7u12/</item>
+        <item>/r/lolcats/</item>
+        <item>/r/screenshots/</item>
+        <item>/r/AdviceAnimals/</item>
+        <item>/r/desktops/</item>
+        <item>/r/Demotivational/</item>
+        <item>/r/reactiongifs/</item>
+        <item>/r/wallpapers/</item>
+        <item>/r/aww/</item>
+        <item>/r/photography/</item>
+        <item>/r/images/</item>
+        <item>/r/gifs/</item>
+        <item>/r/gaming/</item>
     </string-array>
 </resources>

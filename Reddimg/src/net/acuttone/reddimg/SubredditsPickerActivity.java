@@ -93,10 +93,11 @@ public class SubredditsPickerActivity extends Activity {
 	}
 
 	private static String getDefaultSubreddits() {
-		String[] subreddits = { "funny", "pics" };
+		String[] subreddits = ReddimgApp.instance().getResources().getStringArray(R.array.default_subreddits);
+		
 		StringBuilder sb = new StringBuilder();
 		for (String s : subreddits) {
-			sb.append(SUBREDDIT_PREFIX + s + STRING_SEPARATOR);
+			sb.append(s + STRING_SEPARATOR);
 		}
 		String result = sb.toString();
 		result = result.substring(0, result.length() - 1);

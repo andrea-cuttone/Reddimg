@@ -20,6 +20,7 @@
         <activity android:name=".PrefsActivity" />
         <activity android:name=".SubredditsPickerActivity" />
         <activity android:name=".UserSubredditsActivity" />
+        <activity android:name=".PopularSubredditsActivity" />
         <activity android:name=".LinkViewerActivity" />
     </application>
 
