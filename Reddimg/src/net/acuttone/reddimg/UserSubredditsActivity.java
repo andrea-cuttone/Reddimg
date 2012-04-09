@@ -10,9 +10,11 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
@@ -43,6 +45,19 @@ public class UserSubredditsActivity extends Activity implements OnSharedPreferen
 		
 		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		
+		Button btnRefresh = (Button) findViewById(R.id.usersubreddits_btnrefresh);
+		btnRefresh.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				refreshSubreddits();
+			}
+		});
+		
+		refreshSubreddits();
+	}
+
+	private void refreshSubreddits() {
 		AsyncTask<Void, Void, List<String>> loadTask = new AsyncTask<Void, Void, List<String>>() {
 
 			private ProgressDialog progressDialog;
