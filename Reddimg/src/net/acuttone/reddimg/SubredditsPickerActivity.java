@@ -57,7 +57,6 @@ public class SubredditsPickerActivity extends Activity {
 				String text = editText.getText().toString();
 				if (text.matches("[a-zA-Z]+")) {
 					arrayAdapter.add(SUBREDDIT_PREFIX + text);
-					arrayAdapter.notifyDataSetChanged();
 				} else {
 					Toast.makeText(getBaseContext(), "Invalid name!", Toast.LENGTH_SHORT).show();
 				}

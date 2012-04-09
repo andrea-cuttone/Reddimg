@@ -30,7 +30,7 @@ public class SubredditArrayAdapter extends ArrayAdapter<String> {
 	public void add(String object) {
 		if (mySubreddits.contains(object) == false) {
 			mySubreddits.add(object);
-			Collections.sort(mySubreddits, String.CASE_INSENSITIVE_ORDER);
+			notifyDataSetChanged();
 		}
 	}
 
