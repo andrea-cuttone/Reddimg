@@ -73,11 +73,6 @@ public class SubredditsPickerActivity extends Activity {
 	}
 	
 	@Override
-	protected void onPause() {
-		super.onPause();
-	}
-	
-	@Override
 	protected void onResume() {
 		super.onResume();
 		arrayAdapter.getSubreddits().clear();
@@ -87,7 +82,10 @@ public class SubredditsPickerActivity extends Activity {
 	
 	public static List<String> getSubredditsFromPref() {
 		SharedPreferences sp = ReddimgApp.instance().getPrefs();
-		String subreddits = sp.getString(SUBREDDITS_LIST_KEY, getDefaultSubreddits());
+		String subreddits = sp.getString(SUBREDDITS_LIST_KEY, "");
+		if("".equals(subreddits)) {
+			subreddits = getDefaultSubreddits();
+		}
 		List<String> names = new ArrayList<String>((Arrays.asList(subreddits.split(STRING_SEPARATOR))));
 		return names;
 	}

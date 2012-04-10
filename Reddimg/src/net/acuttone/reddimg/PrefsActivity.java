@@ -16,14 +16,8 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	public static final String DEFAULT_CACHE_SIZE = "10";
 	public final static String CACHE_SIZE_KEY = "cache_size";
 	public static final String TITLE_SIZE_KEY = "titleSize";
-	public static final String SUBREDDIT_MODE_KEY = "subredditMode";
-	public final static String SUBREDDITMODE_FRONTPAGE = "Front page";
-	public final static String SUBREDDITMODE_MINE = "My subreddits (only logged users)";
-	public final static String SUBREDDITMODE_MANUAL = "Manual selection";
     
-	private ListPreference subredditModePref;
 	private ListPreference titleSizePref;
-	private boolean subredditsChanged;
 	private Preference clearCachePref;
 
 	@Override
@@ -32,9 +26,7 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);		
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.prefs);
-		subredditModePref = (ListPreference) findPreference(SUBREDDIT_MODE_KEY);
 		titleSizePref = (ListPreference) findPreference(TITLE_SIZE_KEY);
-		subredditsChanged = false;
 		clearCachePref = (Preference) findPreference("pref_clear_cache");
 		updateCurrentCacheSizeText();
 		clearCachePref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
@@ -59,46 +51,35 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
 	@Override
     protected void onResume() {
         super.onResume();
-		subredditModePref.setSummary(subredditModePref.getEntry());
 		titleSizePref.setSummary(titleSizePref.getEntry());
-        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
     }
 	
-	@Override
-	protected void onStop() {
-		super.onStop();
-		if(subredditsChanged) {
-			ReddimgApp.instance().getLinksQueue().initSubreddits();
-		}
-	}
-
 	@Override
     protected void onPause() {
         super.onPause();
-        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);    
+        ReddimgApp.instance().getPrefs().unregisterOnSharedPreferenceChangeListener(this);    
     }
 	
 	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-	    Preference pref = findPreference(key);
-	    
-	    if(SUBREDDIT_MODE_KEY.equals(key) || SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
-	    	subredditsChanged = true;
-	    }
-	    
-	    if(CACHE_SIZE_KEY.equals(key)) {
-	    	int size = Integer.parseInt(sharedPreferences.getString(key, DEFAULT_CACHE_SIZE));
-	    	if(size < 1) {
-	    		Editor editor = sharedPreferences.edit();
-	    		editor.putString(key, "1");
-	    		editor.commit();
-	    	}
-	    }
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+			String key) {
+		Preference pref = findPreference(key);
 
-	    if (pref instanceof ListPreference) {
-	        ListPreference listPref = (ListPreference) pref;
-	        pref.setSummary(listPref.getEntry());
-	    }
+		if (CACHE_SIZE_KEY.equals(key)) {
+			int size = Integer.parseInt(sharedPreferences.getString(key,
+					DEFAULT_CACHE_SIZE));
+			if (size < 1) {
+				Editor editor = sharedPreferences.edit();
+				editor.putString(key, "1");
+				editor.commit();
+			}
+		}
+
+		if (pref instanceof ListPreference) {
+			ListPreference listPref = (ListPreference) pref;
+			pref.setSummary(listPref.getEntry());
+		}
 	}
 
 }

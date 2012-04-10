@@ -18,7 +18,7 @@ import android.widget.Button;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
-public class UserSubredditsActivity extends Activity implements OnSharedPreferenceChangeListener {
+public class UserSubredditsActivity extends Activity {
 	private ListView listView;
 
 	@Override
@@ -39,11 +39,10 @@ public class UserSubredditsActivity extends Activity implements OnSharedPreferen
 				if(subreddits.contains(item) == false) {
 					subreddits.add(item);
 					SubredditsPickerActivity.saveSubreddits(subreddits);
+					((SubredditArrayAdapter)(listView.getAdapter())).notifyDataSetChanged();
 				}
 			}
 		});
-		
-		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		
 		Button btnRefresh = (Button) findViewById(R.id.usersubreddits_btnrefresh);
 		btnRefresh.setOnClickListener(new OnClickListener() {
@@ -56,6 +55,14 @@ public class UserSubredditsActivity extends Activity implements OnSharedPreferen
 		});
 		
 		refreshSubreddits();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if(listView != null && listView.getAdapter() != null) {
+			((SubredditArrayAdapter)(listView.getAdapter())).notifyDataSetChanged();
+		}
 	}
 
 	private void refreshSubreddits() {
@@ -90,10 +97,4 @@ public class UserSubredditsActivity extends Activity implements OnSharedPreferen
 		loadTask.execute(null);
 	}
 
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if(SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
-			((SubredditArrayAdapter)(listView.getAdapter())).notifyDataSetChanged();
-		}
-	}	
 }

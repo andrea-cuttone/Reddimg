@@ -22,7 +22,7 @@ import android.util.Log;
 
 public class ImageCache {
 	private static final int MEGABYTE = 1000000;
-	private static final int MAX_IMAGE_SIZE = 1 * MEGABYTE;
+	private static final int MAX_IMAGE_SIZE = 2 * MEGABYTE;
 	private static final long MIN_FREE_SPACE = 5 * MEGABYTE;
 	private static final String FILE_PREFIX = "__RDIMG_";
 	
@@ -37,8 +37,7 @@ public class ImageCache {
 		reddimgDir = context.getExternalCacheDir();
 		if(reddimgDir == null) {
 			reddimgDir = context.getCacheDir();
-		} else {
-		}
+		} 
 		
 		diskCacheFiles = new TreeSet<File>(new Comparator<File>() {
 

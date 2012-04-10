@@ -1,15 +1,9 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">	
 	<PreferenceCategory android:title="Subreddits">
-		<ListPreference 
-			android:entries="@array/subredditMode"
-			android:title="Subreddits" 
-			android:summary="Which subreddits to display"
-			android:key="subredditMode" 
-			android:entryValues="@array/subredditMode"></ListPreference>
-		<PreferenceScreen android:title="Edit subreddits list" android:summary="only for Manual selection mode">
+		<PreferenceScreen android:title="Edit subreddits list">
 			<intent android:action="android.intent.action.MAIN"
 				android:targetPackage="net.acuttone.reddimg" 
-				android:targetClass="net.acuttone.reddimg.SubredditsPickerActivity" />
+				android:targetClass="net.acuttone.reddimg.SubredditsPrefsTab" />
 		</PreferenceScreen>
 	</PreferenceCategory>
 	<PreferenceCategory android:title="Title format">

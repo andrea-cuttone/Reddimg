@@ -30,4 +30,10 @@ public class SubredditsPrefsTab extends TabActivity {
 
 	    tabHost.setCurrentTab(0);
 	}
+	
+	@Override
+	protected void onPause() {
+		ReddimgApp.instance().getLinksQueue().initSubreddits();
+		super.onPause();
+	}
 }
