@@ -3,7 +3,7 @@
 		<PreferenceScreen android:title="Edit subreddits list">
 			<intent android:action="android.intent.action.MAIN"
 				android:targetPackage="net.acuttone.reddimg" 
-				android:targetClass="net.acuttone.reddimg.SubredditsPrefsTab" />
+				android:targetClass="net.acuttone.reddimg.prefs.SubredditsPrefsTab" />
 		</PreferenceScreen>
 	</PreferenceCategory>
 	<PreferenceCategory android:title="Title format">

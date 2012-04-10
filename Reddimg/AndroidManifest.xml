@@ -9,20 +9,20 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application android:icon="@drawable/icon" android:label="@string/app_name" android:name="net.acuttone.reddimg.core.ReddimgApp">
-        <activity android:name=".views.GalleryActivity"
+        <activity android:name="net.acuttone.reddimg.views.GalleryActivity"
                   android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".views.LoginActivity.java" />
-        <activity android:name=".prefs.PrefsActivity" />
-        <activity android:name=".prefs.SubredditsPrefsTab" /> 
-        <activity android:name=".prefs.SubredditsPickerActivity" />
-        <activity android:name=".prefs.UserSubredditsActivity" />
-        <activity android:name=".prefs.PopularSubredditsActivity" />
-        <activity android:name=".views.LinkViewerActivity" />
+        <activity android:name="net.acuttone.reddimg.views.LoginActivity" />
+        <activity android:name="net.acuttone.reddimg.prefs.PrefsActivity" />
+        <activity android:name="net.acuttone.reddimg.prefs.SubredditsPrefsTab" /> 
+        <activity android:name="net.acuttone.reddimg.prefs.SubredditsPickerActivity" />
+        <activity android:name="net.acuttone.reddimg.prefs.UserSubredditsActivity" />
+        <activity android:name="net.acuttone.reddimg.prefs.PopularSubredditsActivity" />
+        <activity android:name="net.acuttone.reddimg.views.LinkViewerActivity" />
     </application>
 
 </manifest>
