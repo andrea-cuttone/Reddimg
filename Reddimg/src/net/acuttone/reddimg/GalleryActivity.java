@@ -33,7 +33,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 public class GalleryActivity extends Activity {
-	private static final int PICS_PER_PAGE = 12;
+	public static final int PICS_PER_PAGE = 12;
 	private static final String PAGE_NUMBER = "PAGE_NUMBER";
 
 	private int thumbSize;
@@ -115,11 +115,16 @@ public class GalleryActivity extends Activity {
 		final List<GridItem> items = new ArrayList<GridItem>();
 		final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, items);
 		gridView.setAdapter(imageAdapter);
-		final ProgressDialog progressDialog = ProgressDialog.show(this, "Reddimg", "Fetching links from "
-				+ ReddimgApp.instance().getLinksQueue().getCurrentSubreddit());
 		cleanup();
 		loadLinksTask = new AsyncTask<Integer, Void, Void>() {
 
+			private ProgressDialog progressDialog;
+
+			@Override
+			protected void onPreExecute() {
+				progressDialog = ProgressDialog.show(GalleryActivity.this, "Reddimg", "Fetching links...");
+				super.onPreExecute();
+			}
 			@Override
 			protected Void doInBackground(Integer... params) {
 				int page = params[0];
@@ -198,8 +203,8 @@ public class GalleryActivity extends Activity {
 	private void cleanup() {
 		if(loadLinksTask != null) {
 			loadLinksTask.cancel(true);
-			int startPos = page * PICS_PER_PAGE;
-			int endPos = (page + 1) * PICS_PER_PAGE;
+			int startPos = (page-1) * PICS_PER_PAGE;
+			int endPos = page * PICS_PER_PAGE;
 			for (int i = startPos; i < endPos; i++) {
 				ReddimgApp.instance().getLinksQueue().get(i).setThumb(null);
 			}

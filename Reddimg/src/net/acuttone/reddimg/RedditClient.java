@@ -142,7 +142,8 @@ public class RedditClient {
 		BufferedReader in = null;
 		try {
 			HttpGet request = new HttpGet();
-            request.setURI(new URI("http://www.reddit.com/" + subreddit + "/.json" + "?after=t3_" + lastT3));
+            request.setURI(new URI("http://www.reddit.com/" + subreddit + "/.json" +
+            		"?limit=" + 2 * GalleryActivity.PICS_PER_PAGE + "&after=t3_" + lastT3));
             HttpResponse response = httpclient.execute(request, localContext);
             in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 			String inputLine;
