@@ -8,7 +8,7 @@
           android:title="Downvote"
           android:icon="@drawable/downvote_bw" />
     <item android:id="@+id/menuitem_openimg"
-          android:title="Open in browser" 
+          android:title="Open" 
           android:icon="@android:drawable/ic_menu_gallery" />
     <item android:id="@+id/menuitem_opencomments"
           android:title="Show comments"

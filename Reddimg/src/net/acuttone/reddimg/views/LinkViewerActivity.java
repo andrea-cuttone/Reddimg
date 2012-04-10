@@ -1,9 +1,6 @@
 package net.acuttone.reddimg.views;
 
 import net.acuttone.reddimg.R;
-import net.acuttone.reddimg.R.id;
-import net.acuttone.reddimg.R.layout;
-import net.acuttone.reddimg.R.menu;
 import net.acuttone.reddimg.core.ReddimgApp;
 import net.acuttone.reddimg.core.RedditClient;
 import net.acuttone.reddimg.core.RedditLink;
@@ -20,11 +17,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class LinkViewerActivity extends Activity {
@@ -75,6 +75,16 @@ public class LinkViewerActivity extends Activity {
 				loadImage();
 			}
 		});
+		ScrollView scrollView = (ScrollView) findViewById(R.id.scrollViewLink);
+		scrollView.setOnTouchListener(new OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				fadeArrows();
+				return false;
+			}
+		});
+		
 		currentLinkIndex = getIntent().getExtras().getInt(LINK_INDEX);
 		loadImage();
 	}
@@ -119,42 +129,44 @@ public class LinkViewerActivity extends Activity {
 				textviewLoading.setText("");
 				Bitmap bitmap = (Bitmap) ((Object []) result)[0];
 				RedditLink redditLink = (RedditLink) ((Object []) result)[1];
-				applyImage(bitmap, redditLink);
+				viewBitmap.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+				viewBitmap.setAdjustViewBounds(true);
+				viewBitmap.setImageBitmap(bitmap);
+				refreshVoteIndicators(redditLink); 
+				fadeArrows();
 			}
 		};
 		loadTask.execute(currentLinkIndex);
 	}
 
-	private void applyImage(Bitmap bitmap, RedditLink redditLink) {
-		viewBitmap.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-		viewBitmap.setAdjustViewBounds(true);
-		viewBitmap.setImageBitmap(bitmap);
-		refreshVoteIndicators(redditLink); 
-		
-		fadeTask = new AsyncTask<Void, Integer, Void>() {
+	private void fadeArrows() {
+		if (fadeTask == null || fadeTask.isCancelled() || fadeTask.getStatus().equals(AsyncTask.Status.FINISHED)) {
+			fadeTask = new AsyncTask<Void, Integer, Void>() {
 
-			@Override
-			protected Void doInBackground(Void... params) {
-				for(int alpha = 256; alpha >= 0 && isCancelled() == false; alpha -= 4) {
-					try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) { }
-					publishProgress(alpha);
+				@Override
+				protected Void doInBackground(Void... params) {
+					for (int alpha = 256; alpha >= 0 && isCancelled() == false; alpha -= 4) {
+						try {
+							Thread.sleep(20);
+						} catch (InterruptedException e) {
+						}
+						publishProgress(alpha);
+					}
+					return null;
 				}
-				return null;
-			}
-			
-			@Override
-			protected void onProgressUpdate(Integer... values) {
-				if(isCancelled() == false) {
-					viewLeftArrow.setAlpha(values[0]);
-					viewRightArrow.setAlpha(values[0]);
+
+				@Override
+				protected void onProgressUpdate(Integer... values) {
+					if (isCancelled() == false) {
+						viewLeftArrow.setAlpha(values[0]);
+						viewRightArrow.setAlpha(values[0]);
+					}
+					super.onProgressUpdate(values);
 				}
-				super.onProgressUpdate(values);
-			}
-			
-		};
-		fadeTask.execute(null);
+
+			};
+			fadeTask.execute(null);
+		}
 	}
 
 	private void refreshVoteIndicators(RedditLink redditLink) {
