@@ -3,24 +3,24 @@
 	android:layout_height="fill_parent" android:layout_width="fill_parent"
 	android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
 	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		android:layout_width="match_parent" android:layout_height="match_parent"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
 		android:orientation="vertical">
 		<TextView android:text="" android:id="@+id/textViewTitle"
 			android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
-			android:layout_width="match_parent"></TextView>
+			android:layout_width="fill_parent"></TextView>
 		<FrameLayout android:id="@+id/framelayout2"
 			android:layout_height="fill_parent" android:layout_width="fill_parent"
 			android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
-			<ScrollView android:layout_width="match_parent"
-				android:id="@+id/scrollViewLink" android:layout_height="match_parent"
+			<ScrollView android:layout_width="fill_parent"
+				android:id="@+id/scrollViewLink" android:layout_height="fill_parent"
 				android:layout_alignParentTop="true" android:layout_alignParentLeft="true"
 				android:layout_above="@+id/button1" android:layout_alignParentRight="true"
 				android:scrollbarAlwaysDrawVerticalTrack="true">
 				<LinearLayout android:id="@+id/linearLayout1"
-					android:layout_width="match_parent" android:layout_height="match_parent"
+					android:layout_width="fill_parent" android:layout_height="fill_parent"
 					android:gravity="top">
-					<ImageView android:gravity="top" android:layout_height="match_parent"
-						android:id="@+id/imageViewLink" android:layout_width="match_parent"></ImageView>
+					<ImageView android:gravity="top" android:layout_height="fill_parent"
+						android:id="@+id/imageViewLink" android:layout_width="fill_parent"></ImageView>
 				</LinearLayout>
 			</ScrollView>
 			<ImageView android:layout_gravity="top|right"

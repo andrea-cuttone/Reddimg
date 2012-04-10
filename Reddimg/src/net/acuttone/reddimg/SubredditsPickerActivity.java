@@ -67,7 +67,7 @@ public class SubredditsPickerActivity extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				selectedItem = arrayAdapter.getItem((int) id);
-				showDialog(DELETE_CONFIRMATION_DLG, null);
+				showDialog(DELETE_CONFIRMATION_DLG);
 			}
 		});
 	}
@@ -123,7 +123,7 @@ public class SubredditsPickerActivity extends Activity {
 	}
 
 	@Override
-	protected Dialog onCreateDialog(int id, Bundle args) {
+	protected Dialog onCreateDialog(int id) {
 		if (DELETE_CONFIRMATION_DLG == id) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage("");
@@ -144,6 +144,7 @@ public class SubredditsPickerActivity extends Activity {
 			});
 			return builder.create();
 		}
-		return super.onCreateDialog(id, args);
+		return super.onCreateDialog(id);
 	}
+	
 }

@@ -34,8 +34,8 @@ public class ImageCache {
 	}
 
 	private void initDiskCache(Context context) {
-		reddimgDir = context.getExternalCacheDir();
-		if(reddimgDir == null) {
+		reddimgDir = new File("/mnt/sdcard");
+		if(reddimgDir.exists() == false) {
 			reddimgDir = context.getCacheDir();
 		} 
 		
