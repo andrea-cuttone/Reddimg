@@ -39,6 +39,7 @@ public class LinkViewerActivity extends Activity {
 	private ImageView viewUpvote;
 	private ImageView viewDownvote;
 	private TextView textviewLoading;
+	private AsyncTask<Integer, RedditLink, Object[]> loadTask;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -85,12 +86,25 @@ public class LinkViewerActivity extends Activity {
 			}
 		});
 		
-		currentLinkIndex = getIntent().getExtras().getInt(LINK_INDEX);
+		if(savedInstanceState != null && savedInstanceState.containsKey(LINK_INDEX)) {
+			currentLinkIndex = savedInstanceState.getInt(LINK_INDEX);
+		} else {
+			currentLinkIndex = getIntent().getExtras().getInt(LINK_INDEX);
+		}
 		loadImage();
 	}
 	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putInt(LINK_INDEX, currentLinkIndex);
+	}
+	
 	private void loadImage() {
-		AsyncTask<Integer, RedditLink, Object[]> loadTask = new AsyncTask<Integer, RedditLink, Object[]>() {
+		if(loadTask != null) {
+			loadTask.cancel(true);
+		}
+		loadTask = new AsyncTask<Integer, RedditLink, Object[]>() {
 
 			@Override
 			protected void onPreExecute() {
