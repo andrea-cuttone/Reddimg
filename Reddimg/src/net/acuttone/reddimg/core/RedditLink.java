@@ -1,4 +1,4 @@
-package net.acuttone.reddimg;
+package net.acuttone.reddimg.core;
 
 import android.graphics.Bitmap;
 import android.util.Log;

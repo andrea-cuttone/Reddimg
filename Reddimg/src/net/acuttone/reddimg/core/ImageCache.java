@@ -1,4 +1,4 @@
-package net.acuttone.reddimg;
+package net.acuttone.reddimg.core;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +12,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.TreeSet;
+
+import net.acuttone.reddimg.prefs.PrefsActivity;
 
 import android.content.Context;
 import android.content.SharedPreferences;

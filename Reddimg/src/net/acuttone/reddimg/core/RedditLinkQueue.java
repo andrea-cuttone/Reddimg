@@ -1,7 +1,9 @@
-package net.acuttone.reddimg;
+package net.acuttone.reddimg.core;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import net.acuttone.reddimg.prefs.SubredditsPickerActivity;
 
 import android.util.Log;
 

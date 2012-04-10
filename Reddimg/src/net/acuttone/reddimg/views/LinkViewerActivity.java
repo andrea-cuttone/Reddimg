@@ -1,5 +1,13 @@
-package net.acuttone.reddimg;
+package net.acuttone.reddimg.views;
 
+import net.acuttone.reddimg.R;
+import net.acuttone.reddimg.R.id;
+import net.acuttone.reddimg.R.layout;
+import net.acuttone.reddimg.R.menu;
+import net.acuttone.reddimg.core.ReddimgApp;
+import net.acuttone.reddimg.core.RedditClient;
+import net.acuttone.reddimg.core.RedditLink;
+import net.acuttone.reddimg.prefs.PrefsActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
