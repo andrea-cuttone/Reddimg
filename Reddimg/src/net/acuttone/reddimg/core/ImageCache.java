@@ -19,10 +19,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.os.StatFs;
 import android.util.Log;
 
 public class ImageCache {
+	private static final String NET_ACUTTONE_REDDIMG = "net.acuttone.reddimg";
 	private static final int MEGABYTE = 1000000;
 	private static final int MAX_IMAGE_SIZE = 2 * MEGABYTE;
 	private static final long MIN_FREE_SPACE = 5 * MEGABYTE;
@@ -36,8 +38,12 @@ public class ImageCache {
 	}
 
 	private void initDiskCache(Context context) {
-		reddimgDir = new File("/mnt/sdcard");
-		if(reddimgDir.exists() == false) {
+		if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+			reddimgDir = new File(Environment.getExternalStorageDirectory() + File.separator + NET_ACUTTONE_REDDIMG);
+			if(reddimgDir.exists() == false) {
+				reddimgDir.mkdir();
+			}
+		} else {
 			reddimgDir = context.getCacheDir();
 		} 
 		
@@ -170,10 +176,10 @@ public class ImageCache {
 		long cacheSize = getMaxCacheSize();
 		while(totSize > cacheSize && diskCacheFiles.size() > 0) {
 			File oldest = diskCacheFiles.first();
-			totSize -= oldest.length();
 			diskCacheFiles.remove(oldest);
+			totSize -= oldest.length();
 			if(oldest.exists() && 
-			   oldest.getAbsolutePath().contains("net.acuttone.reddimg/cache") && 
+			   oldest.getAbsolutePath().contains(NET_ACUTTONE_REDDIMG) && 
 			   oldest.isFile() && 
 			   oldest.getName().startsWith(FILE_PREFIX)) {
 				Log.d(ReddimgApp.APP_NAME, "Deleting from disk " + oldest.getName());
