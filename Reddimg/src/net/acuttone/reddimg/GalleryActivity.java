@@ -205,7 +205,7 @@ public class GalleryActivity extends Activity {
 			loadLinksTask.cancel(true);
 			int startPos = (page-1) * PICS_PER_PAGE;
 			int endPos = page * PICS_PER_PAGE;
-			for (int i = startPos; i < endPos; i++) {
+			for (int i = startPos; i < endPos && i >= 0; i++) {
 				ReddimgApp.instance().getLinksQueue().get(i).setThumb(null);
 			}
 			((ImageAdapter) gridView.getAdapter()).notifyDataSetChanged();
