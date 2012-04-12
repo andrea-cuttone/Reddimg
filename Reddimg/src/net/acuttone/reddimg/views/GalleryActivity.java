@@ -5,13 +5,9 @@ import java.util.List;
 import java.util.Random;
 
 import net.acuttone.reddimg.R;
-import net.acuttone.reddimg.R.id;
-import net.acuttone.reddimg.R.layout;
-import net.acuttone.reddimg.R.menu;
 import net.acuttone.reddimg.core.ReddimgApp;
 import net.acuttone.reddimg.core.RedditLink;
 import net.acuttone.reddimg.prefs.PrefsActivity;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -120,53 +116,63 @@ public class GalleryActivity extends Activity {
 			imgviewLeft.setAlpha(255);
 		}
 		
-		final List<GridItem> items = new ArrayList<GridItem>();
-		final ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, items);
+		List<GridItem> items = new ArrayList<GridItem>();
+		ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, items);
 		gridView.setAdapter(imageAdapter);
-		cleanup();
-		loadLinksTask = new AsyncTask<Integer, Void, Void>() {
-
-			private ProgressDialog progressDialog;
-
-			@Override
-			protected void onPreExecute() {
-				progressDialog = ProgressDialog.show(GalleryActivity.this, "Reddimg", "Fetching links...");
-				super.onPreExecute();
-			}
-			@Override
-			protected Void doInBackground(Integer... params) {
-				int page = params[0];
-				int startPos = page * PICS_PER_PAGE;
-				int endPos = (page + 1) * PICS_PER_PAGE;
-				for (int i = startPos; i < endPos; i++) {
-					items.add(new GridItem(ReddimgApp.instance().getLinksQueue().get(i)));
-				}
-				publishProgress(null);
-				for (GridItem item : items) {
-					if(isCancelled()) {
-						break;
-					}
-					if(item != null && item.getRedditLink() != null) {
-						item.getRedditLink().prepareThumb(thumbSize);
-						publishProgress(null);
-					}
-				}
-				return null;
-			}
-
-			@Override
-			protected void onProgressUpdate(Void... values) {
-				super.onProgressUpdate(values);
-				if(isCancelled()) {
-					return;
-				}
-				if(progressDialog.isShowing()) {
-					progressDialog.dismiss();
-				}
-				imageAdapter.notifyDataSetChanged();
-			}
-		};
+		if(loadLinksTask != null) {
+			loadLinksTask.cancel(true);
+		}
+		loadLinksTask = new LoadLinksAsyncTask(imageAdapter);
 		loadLinksTask.execute(page);
+	}
+	
+	private class LoadLinksAsyncTask extends AsyncTask<Integer, Void, Void> {
+
+		private ProgressDialog progressDialog;
+		private ImageAdapter imageAdapter;
+
+		public LoadLinksAsyncTask(ImageAdapter imageAdapter) {
+			this.imageAdapter = imageAdapter;
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			progressDialog = ProgressDialog.show(GalleryActivity.this, "Reddimg", "Fetching links...");
+			super.onPreExecute();
+		}
+		
+		@Override
+		protected Void doInBackground(Integer... params) {
+			int page = params[0];
+			int startPos = page * PICS_PER_PAGE;
+			int endPos = (page + 1) * PICS_PER_PAGE;
+			for (int i = startPos; i < endPos; i++) {
+				imageAdapter.getItems().add(new GridItem(ReddimgApp.instance().getLinksQueue().get(i)));
+			}
+			publishProgress(null);
+			for (GridItem item : imageAdapter.getItems()) {
+				if(isCancelled()) {
+					break;
+				}
+				if(item != null && item.getRedditLink() != null) {
+					item.getRedditLink().prepareThumb(thumbSize);
+					publishProgress(null);
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {
+			super.onProgressUpdate(values);
+			if(isCancelled()) {
+				return;
+			}
+			if(progressDialog.isShowing()) {
+				progressDialog.dismiss();
+			}
+			imageAdapter.notifyDataSetChanged();
+		}
 	}
 
 	@Override
@@ -208,28 +214,22 @@ public class GalleryActivity extends Activity {
 		}
 	}
 	
-	private void cleanup() {
-		if(loadLinksTask != null) {
-			loadLinksTask.cancel(true);
-			int startPos = (page-1) * PICS_PER_PAGE;
-			int endPos = page * PICS_PER_PAGE;
-			for (int i = startPos; i < endPos && i >= 0; i++) {
-				ReddimgApp.instance().getLinksQueue().get(i).setThumb(null);
-			}
-			((ImageAdapter) gridView.getAdapter()).notifyDataSetChanged();
-		}
-	}
-	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		cleanup();
+		if(loadLinksTask != null) {
+			loadLinksTask.cancel(true);
+		}
+		ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, new ArrayList<GridItem>());
+		gridView.setAdapter(imageAdapter);
+		ReddimgApp.instance().getLinksQueue().clearThumbs();
 	}
 	
 	private class GridItem {
 		
 		private RedditLink redditLink;
 		private Bitmap placeholder;
+		
 		public GridItem(RedditLink link) {
 			this.redditLink = link;
 		    int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)); 
@@ -251,13 +251,6 @@ public class GalleryActivity extends Activity {
 			return redditLink;
 		}
 
-		public void setRedditLink(RedditLink redditLink) {
-			this.redditLink = redditLink;
-		}
-		
-		public void dispose() {
-			// TODO
-		}
 	}
 	
 	private class ImageAdapter extends BaseAdapter {
@@ -272,6 +265,10 @@ public class GalleryActivity extends Activity {
 		@Override
 		public void notifyDataSetChanged() {
 			super.notifyDataSetChanged();
+		}
+		
+		public List<GridItem> getItems() {
+			return items;
 		}
 
 		@Override
