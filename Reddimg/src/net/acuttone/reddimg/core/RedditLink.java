@@ -1,6 +1,13 @@
 package net.acuttone.reddimg.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 
@@ -13,9 +20,10 @@ public class RedditLink {
 	private String subreddit;
 	private String author;
 	private String voteStatus;
+	private String thumbUrl;
 	private Bitmap thumb;
-
-	public RedditLink(String id, String url, String commentUrl, String title, String author, String subreddit, int score, Boolean voteStatus) {
+	
+	public RedditLink(String id, String url, String commentUrl, String title, String author, String subreddit, int score, Boolean voteStatus, String thumbUrl) {
 		this.id = id;
 		this.title = title;
 		this.url = url;
@@ -30,7 +38,7 @@ public class RedditLink {
 		} else if(voteStatus == false) {
 			this.voteStatus = RedditClient.DOWNVOTE;
 		}
-		this.thumb = null;
+		this.thumbUrl = thumbUrl;
 	}
 	
 	public String getId() {
@@ -81,32 +89,64 @@ public class RedditLink {
 	}
 	
 	public void prepareThumb(int size) {
-		if (thumb == null || thumb.isRecycled() || thumb.getWidth() != size) {
-			setThumb(null);
-			Bitmap bmpFullSize = ReddimgApp.instance().getImageCache().getImage(getUrl());
-			if (bmpFullSize != null) {
-				Bitmap bmpSquared = bmpFullSize;
-				if (bmpFullSize.getWidth() != bmpFullSize.getHeight()) {
-					int minDim = Math.min(bmpFullSize.getWidth(), bmpFullSize.getHeight());
-					int x0 = (bmpFullSize.getWidth() - minDim) / 2;
-					int x1 = (bmpFullSize.getWidth() + minDim) / 2;
-					int y0 = (bmpFullSize.getHeight() - minDim) / 2;
-					int y1 = (bmpFullSize.getHeight() + minDim) / 2;
-					try {
-						bmpSquared = Bitmap.createBitmap(bmpFullSize, x0, y0, x1, y1);
-						bmpFullSize.recycle();
-					} catch (Throwable e) {
-						Log.w(ReddimgApp.APP_NAME, e.toString());
-					}
+		if (thumb == null || thumb.isRecycled()) {
+			HttpURLConnection connection = null;
+			InputStream is = null;
+
+			try {
+				connection = (HttpURLConnection) new URL(url).openConnection();
+				connection.setConnectTimeout(5000);
+				is = connection.getInputStream();
+				thumb = BitmapFactory.decodeStream(is);
+			} catch (MalformedURLException e) {
+				Log.e(ReddimgApp.APP_NAME, e.toString());
+				return;
+			} catch (IOException e) {
+				Log.e(ReddimgApp.APP_NAME, e.toString());
+				return;
+			} finally {
+				if (connection != null) {
+					connection.disconnect();
 				}
 				try {
-					setThumb(Bitmap.createScaledBitmap(bmpSquared, size, size, true));
-					bmpSquared.recycle();
+					if (is != null) {
+						is.close();
+					}
+				} catch (IOException e) {
+					Log.e(ReddimgApp.APP_NAME, e.toString());
+				}
+			}
+		}
+		if (thumb != null && thumb.getWidth() != size) {
+			Bitmap bmpSquared = thumb;
+			if (thumb.getWidth() != thumb.getHeight()) {
+				int minDim = Math.min(thumb.getWidth(), thumb.getHeight());
+				int x0 = (thumb.getWidth() - minDim) / 2;
+				int x1 = (thumb.getWidth() + minDim) / 2;
+				int y0 = (thumb.getHeight() - minDim) / 2;
+				int y1 = (thumb.getHeight() + minDim) / 2;
+				try {
+					bmpSquared = Bitmap.createBitmap(thumb, x0, y0, x1, y1);
+					thumb.recycle();
 				} catch (Throwable e) {
 					Log.w(ReddimgApp.APP_NAME, e.toString());
 				}
 			}
+			try {
+				setThumb(Bitmap.createScaledBitmap(bmpSquared, size, size, true));
+				bmpSquared.recycle();
+			} catch (Throwable e) {
+				Log.w(ReddimgApp.APP_NAME, e.toString());
+			}
 		}
+	}
+	
+	public String getThumbUrl() {
+		return thumbUrl;
+	}
+
+	public void setThumbUrl(String thumbUrl) {
+		this.thumbUrl = thumbUrl;
 	}
 	
 	@Override

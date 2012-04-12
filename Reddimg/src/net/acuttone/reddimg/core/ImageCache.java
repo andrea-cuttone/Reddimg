@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.TreeSet;
 
 import net.acuttone.reddimg.prefs.PrefsActivity;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;

@@ -222,7 +222,6 @@ public class GalleryActivity extends Activity {
 		}
 		ImageAdapter imageAdapter = new ImageAdapter(GalleryActivity.this, new ArrayList<GridItem>());
 		gridView.setAdapter(imageAdapter);
-		ReddimgApp.instance().getLinksQueue().clearThumbs();
 	}
 	
 	private class GridItem {
@@ -239,6 +238,10 @@ public class GalleryActivity extends Activity {
 		    new Canvas(placeholder).drawRect(new Rect(0, 0, thumbSize, thumbSize), paint);
 		}
 		
+		public RedditLink getRedditLink() {
+			return redditLink;
+		}
+
 		public Bitmap getThumb() {
 			if(redditLink.getThumb() != null && redditLink.getThumb().isRecycled() == false) {
 				return redditLink.getThumb();
@@ -247,18 +250,12 @@ public class GalleryActivity extends Activity {
 			}
 		}
 
-		public RedditLink getRedditLink() {
-			return redditLink;
-		}
-
 	}
 	
 	private class ImageAdapter extends BaseAdapter {
-		private Context context;
 		private List<GridItem> items;
 
 		public ImageAdapter(Context context, List<GridItem> items) {
-			this.context = context;
 			this.items = items;
 		}
 

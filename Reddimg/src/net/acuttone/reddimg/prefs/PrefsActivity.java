@@ -1,7 +1,6 @@
 package net.acuttone.reddimg.prefs;
 
 import net.acuttone.reddimg.R;
-import net.acuttone.reddimg.R.xml;
 import net.acuttone.reddimg.core.ReddimgApp;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;

@@ -1,6 +1,5 @@
 package net.acuttone.reddimg.prefs;
 import net.acuttone.reddimg.R;
-import net.acuttone.reddimg.R.layout;
 import net.acuttone.reddimg.core.ReddimgApp;
 import android.app.TabActivity;
 import android.content.Intent;

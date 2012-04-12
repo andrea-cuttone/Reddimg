@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.acuttone.reddimg.prefs.SubredditsPickerActivity;
-
 import android.util.Log;
 
 public class RedditLinkQueue {

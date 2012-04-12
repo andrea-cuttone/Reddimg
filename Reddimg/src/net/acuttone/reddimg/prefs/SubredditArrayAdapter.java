@@ -3,9 +3,6 @@ package net.acuttone.reddimg.prefs;
 import java.util.List;
 
 import net.acuttone.reddimg.R;
-import net.acuttone.reddimg.R.id;
-import net.acuttone.reddimg.R.layout;
-
 import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;

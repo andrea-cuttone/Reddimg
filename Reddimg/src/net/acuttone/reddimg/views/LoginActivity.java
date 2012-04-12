@@ -1,8 +1,6 @@
 package net.acuttone.reddimg.views;
 
 import net.acuttone.reddimg.R;
-import net.acuttone.reddimg.R.id;
-import net.acuttone.reddimg.R.layout;
 import net.acuttone.reddimg.core.ReddimgApp;
 import android.app.Activity;
 import android.app.AlertDialog;
