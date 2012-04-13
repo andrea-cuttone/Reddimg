@@ -8,10 +8,13 @@ import net.acuttone.reddimg.R;
 import net.acuttone.reddimg.core.ReddimgApp;
 import net.acuttone.reddimg.core.RedditLink;
 import net.acuttone.reddimg.prefs.PrefsActivity;
+import net.acuttone.reddimg.prefs.SubredditsPickerActivity;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -36,7 +39,7 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
-public class GalleryActivity extends Activity {
+public class GalleryActivity extends Activity implements OnSharedPreferenceChangeListener {
 	public static final int PICS_PER_PAGE = 12;
 	private static final String PAGE_NUMBER = "PAGE_NUMBER";
 
@@ -48,6 +51,7 @@ public class GalleryActivity extends Activity {
 	private List<LoadLinksAsyncTask> loadLinkTasks;
 	private ImageView imgviewLeft;
 	private ImageView imgviewRight;
+	private boolean doReload;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,8 @@ public class GalleryActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.gallery);
+		
+		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		
 		rnd = new Random();
 		page = savedInstanceState == null ? 0 : savedInstanceState.getInt(PAGE_NUMBER);
@@ -94,6 +100,16 @@ public class GalleryActivity extends Activity {
 		});
 		loadLinkTasks = new ArrayList<LoadLinksAsyncTask>();
 		loadLinks();
+		doReload = false;
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if(doReload) {
+			loadLinks();
+			doReload = false;
+		}
 	}
 	
 	@Override
@@ -320,6 +336,15 @@ public class GalleryActivity extends Activity {
 		super.onDestroy();
 		for (LoadLinksAsyncTask t : loadLinkTasks) {
 			t.cancel(true);
+		}
+		ReddimgApp.instance().getPrefs().unregisterOnSharedPreferenceChangeListener(this);    
+	}
+	
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
+			page = 0;
+			doReload = true;
 		}
 	}
 	
