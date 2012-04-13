@@ -61,11 +61,5 @@ public class RedditLinkQueue {
 			}
 		}
 	}
-	
-	public void clearThumbs() {
-		for (RedditLink l : links) {
-			l.setThumb(null);
-		}
-	}
 
 }
