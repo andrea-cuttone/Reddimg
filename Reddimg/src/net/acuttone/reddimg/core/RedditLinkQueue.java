@@ -9,9 +9,8 @@ import android.util.Log;
 public class RedditLinkQueue {
 
 	private List<RedditLink> links;
-	private List<String> lastT3List;
-	private List<String> subredditsList;
-	private int nextSubredditIndex;
+	private String lastT3;
+	private String subreddits;
 	
 	public RedditLinkQueue() {
 		initSubreddits();
@@ -19,12 +18,16 @@ public class RedditLinkQueue {
 	
 	public void initSubreddits() {
 		links = new ArrayList<RedditLink>();
-		lastT3List = new ArrayList<String>();
-		subredditsList = SubredditsPickerActivity.getSubredditsFromPref();
-		for (String s : subredditsList) {
-			lastT3List.add("");
+		lastT3 = "";
+		List<String> list = SubredditsPickerActivity.getSubredditsFromPref();
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < list.size(); i++) {
+			sb.append(list.get(i));
+			if(i != list.size() -1) {
+				sb.append("+");
+			}
 		}
-		nextSubredditIndex = 0;
+		subreddits = sb.toString();
 	}
 
 	public RedditLink get(int index) {
@@ -34,23 +37,12 @@ public class RedditLinkQueue {
 		return links.get(index);
 	}	
 	
-	public String getCurrentSubreddit() {
-		return subredditsList.get(nextSubredditIndex);
-	}
-
 	private void getNewLinks() {
-		String subreddit = subredditsList.get(nextSubredditIndex);
-		String lastT3 = lastT3List.get(nextSubredditIndex);
-		Log.d(ReddimgApp.APP_NAME, "Fetching links from " + subreddit);
+		Log.d(ReddimgApp.APP_NAME, "Fetching links from " + subreddits);
 		List<RedditLink> newLinks = new ArrayList<RedditLink>();
-		lastT3 = ReddimgApp.instance().getRedditClient().getLinks(newLinks, subreddit, lastT3);
-		if (lastT3 != null && !lastT3.equals("")) {
-			lastT3List.set(nextSubredditIndex, lastT3);
-		}
-
-		nextSubredditIndex++;
-		if (nextSubredditIndex >= subredditsList.size()) {
-			nextSubredditIndex = 0;
+		String result = ReddimgApp.instance().getRedditClient().getLinks(newLinks, subreddits, lastT3);
+		if (result != null && !result.equals("")) {
+			lastT3 = result;
 		}
 
 		synchronized (links) {

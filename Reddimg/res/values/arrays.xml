@@ -18,25 +18,26 @@
         <item>32</item>
     </string-array>
     <string-array name="default_subreddits">
-        <item>/r/funny/</item>
-        <item>/r/pics/</item>
-        <item>/r/aww/</item>
-        <item>/r/gifs/</item>
+        <item>funny</item>
+        <item>pics</item>
+        <item>aww</item>
+        <item>AdviceAnimals</item>
     </string-array>
     <string-array name="popular_subreddits">
-        <item>/r/comics/</item>
-        <item>/r/f7u12/</item>
-        <item>/r/lolcats/</item>
-        <item>/r/screenshots/</item>
-        <item>/r/AdviceAnimals/</item>
-        <item>/r/desktops/</item>
-        <item>/r/Demotivational/</item>
-        <item>/r/reactiongifs/</item>
-        <item>/r/wallpapers/</item>
-        <item>/r/aww/</item>
-        <item>/r/photography/</item>
-        <item>/r/images/</item>
-        <item>/r/gifs/</item>
-        <item>/r/gaming/</item>
+        <item>comics</item>
+        <item>f7u12</item>
+        <item>lolcats/</item>
+        <item>screenshots</item>
+        <item>AdviceAnimals</item>
+        <item>desktops</item>
+        <item>Demotivational</item>
+        <item>wallpaper</item>
+        <item>wallpapers</item>
+        <item>aww</item>
+        <item>funny</item>
+        <item>pics</item>
+        <item>photography</item>
+        <item>images</item>
+        <item>gaming</item>
     </string-array>
 </resources>

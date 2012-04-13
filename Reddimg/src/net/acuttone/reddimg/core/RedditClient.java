@@ -140,12 +140,11 @@ public class RedditClient {
 		return success;
 	}
 	
-	public String getLinks(List<RedditLink> newLinks, String subreddit, String lastT3) {
+	public String getLinks(List<RedditLink> newLinks, String subreddits, String lastT3) {
 		BufferedReader in = null;
 		try {
 			HttpGet request = new HttpGet();
-            request.setURI(new URI("http://www.reddit.com/" + subreddit + "/.json" +
-            		"?limit=" + 2 * GalleryActivity.PICS_PER_PAGE + "&after=t3_" + lastT3));
+            request.setURI(new URI("http://www.reddit.com/r/" + subreddits + "/.json?after=t3_" + lastT3));
             HttpResponse response = httpclient.execute(request, localContext);
             in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 			String inputLine;
@@ -300,6 +299,7 @@ public class RedditClient {
 				JSONObject obj = (JSONObject) children.get(j);
 				JSONObject cData = (JSONObject) obj.get("data");
 				String url = (String) cData.get("url");	
+				url = url.substring(3, url.length() - 1);
 				subreddits.add(url);
 			}
 		} catch (Exception e) {
