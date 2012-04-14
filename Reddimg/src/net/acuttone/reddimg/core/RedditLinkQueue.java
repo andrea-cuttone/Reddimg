@@ -20,6 +20,9 @@ public class RedditLinkQueue {
 		links = new ArrayList<RedditLink>();
 		lastT3 = "";
 		List<String> list = SubredditsPickerActivity.getSubredditsFromPref();
+		if(list.isEmpty()) {
+			list = SubredditsPickerActivity.getDefaultSubreddits();
+		}
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < list.size(); i++) {
 			sb.append(list.get(i));

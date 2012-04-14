@@ -1,12 +1,19 @@
 package net.acuttone.reddimg.prefs;
+import java.util.List;
+
 import net.acuttone.reddimg.R;
 import net.acuttone.reddimg.core.ReddimgApp;
+import net.acuttone.reddimg.views.GalleryActivity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.app.TabActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TabHost;
+import android.widget.Toast;
 
 public class SubredditsPrefsTab extends TabActivity {
 	
@@ -35,6 +42,11 @@ public class SubredditsPrefsTab extends TabActivity {
 	
 	@Override
 	protected void onPause() {
+		if (SubredditsPickerActivity.getSubredditsFromPref().isEmpty()) {
+			Toast.makeText(this, "No subreddits selected. The default ones will be used", Toast.LENGTH_LONG).show();
+			SubredditsPickerActivity.saveSubreddits(SubredditsPickerActivity.getDefaultSubreddits());
+		}
+
 		ReddimgApp.instance().getLinksQueue().initSubreddits();
 		super.onPause();
 	}

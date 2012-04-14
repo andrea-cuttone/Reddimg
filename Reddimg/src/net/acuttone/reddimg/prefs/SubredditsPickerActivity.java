@@ -86,22 +86,14 @@ public class SubredditsPickerActivity extends Activity {
 		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		String subreddits = sp.getString(SUBREDDITS_LIST_KEY, "");
 		if("".equals(subreddits)) {
-			subreddits = getDefaultSubreddits();
+			return new ArrayList<String>();
 		}
-		List<String> names = new ArrayList<String>((Arrays.asList(subreddits.split(STRING_SEPARATOR))));
-		return names;
+		return new ArrayList<String>(Arrays.asList(subreddits.split(STRING_SEPARATOR)));
 	}
 
-	private static String getDefaultSubreddits() {
+	public static List<String> getDefaultSubreddits() {
 		String[] subreddits = ReddimgApp.instance().getResources().getStringArray(R.array.default_subreddits);
-		
-		StringBuilder sb = new StringBuilder();
-		for (String s : subreddits) {
-			sb.append(s + STRING_SEPARATOR);
-		}
-		String result = sb.toString();
-		result = result.substring(0, result.length() - 1);
-		return result;
+		return Arrays.asList(subreddits);
 	}
 
 	public static void saveSubreddits(List<String> subreddits) {
