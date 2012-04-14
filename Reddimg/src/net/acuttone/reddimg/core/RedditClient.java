@@ -169,26 +169,30 @@ public class RedditClient {
 				JSONObject obj = (JSONObject) children.get(j);
 				JSONObject cData = (JSONObject) obj.get("data");
 				String url = (String) cData.get("url");
+				if(isUrlValid(url) == false) {
+					continue;
+				}
+				String thumbUrl = (String) cData.get("thumbnail");
+				if(isUrlValid(thumbUrl) == false) {
+					continue;
+				}
+				boolean isNSFW = cData.getBoolean("over_18");
+				if (isNSFW && showNSFW == false) {
+					continue;
+				}
 				String commentUrl = "http://www.reddit.com" + cData.get("permalink");
 				String title = Html.fromHtml((String) cData.get("title")).toString();
 				String author = (String) cData.get("author");
 				String postedIn = (String) cData.get("subreddit");
-				String thumbUrl = (String) cData.get("thumbnail");
 				int score = cData.getInt("score");								
-				boolean isNSFW = cData.getBoolean("over_18");
 				Boolean voteStatus = null;
 				if(cData.isNull("likes") == false) {
 					voteStatus = cData.getBoolean("likes");
 				}
 				lastT3 = (String) cData.get("id");
-				if (isNSFW && showNSFW == false) {
-					continue;
-				}
-				if(isUrlValid(url)) {
-					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus, thumbUrl);
-					newLinks.add(newRedditLink);
-					Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
-				}
+				RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus, thumbUrl);
+				newLinks.add(newRedditLink);
+				Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 			}
 		} catch (Exception e) {
 			Log.e(ReddimgApp.APP_NAME, e.toString());
