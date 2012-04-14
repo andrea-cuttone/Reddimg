@@ -314,6 +314,10 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent = null;
 		switch (item.getItemId()) {
+		case R.id.menuitem_firstpage:
+			page = 0;
+			loadLinks();
+			return true;
 		case R.id.menuitem_login:
 			if (ReddimgApp.instance().getRedditClient().isLoggedIn()) {
 				ReddimgApp.instance().getRedditClient().doLogout();
