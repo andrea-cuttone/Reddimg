@@ -52,9 +52,9 @@ public class LinkViewerActivity extends Activity {
 		textviewLoading.setText("");
 		viewBitmap = (ImageView) findViewById(R.id.scrollViewLink).findViewById(R.id.imageViewLink);
 		viewUpvote = (ImageView) findViewById(R.id.imageupvote);
-		viewUpvote.setAlpha(0);
+		viewUpvote.setVisibility(View.GONE);
 		viewDownvote = (ImageView) findViewById(R.id.imagedownvote);
-		viewDownvote.setAlpha(0);
+		viewDownvote.setVisibility(View.GONE);
 		viewLeftArrow = (ImageView) findViewById(R.id.imageleftarrow);
 		viewRightArrow = (ImageView) findViewById(R.id.imagerightarrow);
 		viewLeftArrow.setOnClickListener(new OnClickListener() {
@@ -115,6 +115,8 @@ public class LinkViewerActivity extends Activity {
 				textviewLoading.setText("Loading links...");
 				viewLeftArrow.setAlpha(0);
 				viewRightArrow.setAlpha(0);
+				viewUpvote.setVisibility(View.GONE);
+				viewDownvote.setVisibility(View.GONE);
 				recycleBitmap();
 			}
 
@@ -185,14 +187,14 @@ public class LinkViewerActivity extends Activity {
 
 	private void refreshVoteIndicators(RedditLink redditLink) {
 		if(RedditClient.UPVOTE.equals(redditLink.getVoteStatus())) {
-			viewUpvote.setAlpha(255);
-			viewDownvote.setAlpha(0);
+			viewUpvote.setVisibility(View.VISIBLE);
+			viewDownvote.setVisibility(View.GONE);
 		} else if(RedditClient.DOWNVOTE.equals(redditLink.getVoteStatus())) {
-			viewUpvote.setAlpha(0);
-			viewDownvote.setAlpha(255);
+			viewUpvote.setVisibility(View.GONE);
+			viewDownvote.setVisibility(View.VISIBLE);
 		} else {
-			viewUpvote.setAlpha(0);
-			viewDownvote.setAlpha(0);
+			viewUpvote.setVisibility(View.GONE);
+			viewDownvote.setVisibility(View.GONE);
 		}
 	}
 
