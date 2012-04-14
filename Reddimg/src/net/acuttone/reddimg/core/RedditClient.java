@@ -149,6 +149,7 @@ public class RedditClient {
 	}
 	
 	public String getLinks(List<RedditLink> newLinks, String subreddits, String lastT3) {
+		boolean showNSFW = ReddimgApp.instance().getPrefs().getBoolean("show_nsfw", false);
 		BufferedReader in = null;
 		try {
 			HttpGet request = new HttpGet();
@@ -174,12 +175,16 @@ public class RedditClient {
 				String postedIn = (String) cData.get("subreddit");
 				String thumbUrl = (String) cData.get("thumbnail");
 				int score = cData.getInt("score");								
+				boolean isNSFW = cData.getBoolean("over_18");
 				Boolean voteStatus = null;
 				if(cData.isNull("likes") == false) {
 					voteStatus = cData.getBoolean("likes");
 				}
 				lastT3 = (String) cData.get("id");
-				if (isUrlValid(url)) {
+				if (isNSFW && showNSFW == false) {
+					continue;
+				}
+				if(isUrlValid(url)) {
 					RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus, thumbUrl);
 					newLinks.add(newRedditLink);
 					Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
