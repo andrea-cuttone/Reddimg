@@ -12,6 +12,7 @@ public class ReddimgApp extends Application {
     private static ReddimgApp instance;
     
     public static String APP_NAME = "REDDIMG";
+    public static final int MEGABYTE = 1000000;
 	
 	private RedditLinkQueue linksQueue;
 	private ImageCache imageCache;

@@ -5,11 +5,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,6 +43,7 @@ import org.json.JSONObject;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Bitmap;
 import android.text.Html;
 import android.util.Log;
 
@@ -49,6 +55,8 @@ public class RedditClient {
 	public final static String UPVOTE = "1";
 	public final static String DOWNVOTE = "-1";
 	public final static String NO_VOTE = "0";
+
+	private static final int MAX_IMAGE_SIZE = 2 * ReddimgApp.MEGABYTE;
 	
 	private HttpClient httpclient;
 	private String uh;
@@ -191,8 +199,29 @@ public class RedditClient {
 		return lastT3;
 	}
 	
-	private static boolean isUrlValid(String url) {
-		return url.matches(".*(gif|jpeg|jpg|png)$");
+	private boolean isUrlValid(String url) {
+		if(url.matches(".*(gif|jpeg|jpg|png)$") == false) {
+			return false;
+		}
+		HttpURLConnection connection = null;
+		try {
+			connection = (HttpURLConnection) new URL(url).openConnection();
+			connection.setConnectTimeout(2000);
+			int contentLength = connection.getContentLength();
+			if (contentLength > MAX_IMAGE_SIZE) {
+				Log.w(ReddimgApp.APP_NAME, url + " exceeds max image size");
+				return false;
+			}
+		} catch (MalformedURLException e) {
+			Log.e(ReddimgApp.APP_NAME, e.toString());
+		} catch (IOException e) {
+			Log.e(ReddimgApp.APP_NAME, e.toString());
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
+		}
+		return true;
 	}
 	
 	private void saveLoginInfo(List<Cookie> cookies) {

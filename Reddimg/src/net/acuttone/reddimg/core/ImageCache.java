@@ -24,9 +24,8 @@ import android.util.Log;
 
 public class ImageCache {
 	private static final String NET_ACUTTONE_REDDIMG = "net.acuttone.reddimg";
-	private static final int MEGABYTE = 1000000;
-	private static final int MAX_IMAGE_SIZE = 2 * MEGABYTE;
-	private static final long MIN_FREE_SPACE = 5 * MEGABYTE;
+	
+	private static final long MIN_FREE_SPACE = 5 * ReddimgApp.MEGABYTE;
 	private static final String FILE_PREFIX = "__RDIMG_";
 	
 	private File reddimgDir;
@@ -114,32 +113,29 @@ public class ImageCache {
 			connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setConnectTimeout(5000);
 			int contentLength = connection.getContentLength();
-			if (contentLength > MAX_IMAGE_SIZE) {
-				Log.w(ReddimgApp.APP_NAME, url + " exceeds max image size");
-			} else {
-				boolean enoughSpace = false;
-				synchronized (diskCacheFiles) {
-					enoughSpace = checkDiskCacheSize(contentLength);
-				}
-				if (!enoughSpace) {
-					Log.w(ReddimgApp.APP_NAME, "Insufficient space on disk to store " + url);
-				} else {
-					File img = new File(getImageDiskPath(url));
-					is = connection.getInputStream();
-					out = new FileOutputStream(img);
-					byte buf[] = new byte[1024];
-					int len;
-					while ((len = is.read(buf)) > 0) {
-						out.write(buf, 0, len);
-					}
-					out.close();
-					is.close();
-					synchronized (diskCacheFiles) {
-						diskCacheFiles.add(img);
-					}
-					return getFromDisk(url);
-				}
+			boolean enoughSpace = false;
+			synchronized (diskCacheFiles) {
+				enoughSpace = checkDiskCacheSize(contentLength);
 			}
+			if (!enoughSpace) {
+				Log.w(ReddimgApp.APP_NAME, "Insufficient space on disk to store " + url);
+			} else {
+				File img = new File(getImageDiskPath(url));
+				is = connection.getInputStream();
+				out = new FileOutputStream(img);
+				byte buf[] = new byte[1024];
+				int len;
+				while ((len = is.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+				out.close();
+				is.close();
+				synchronized (diskCacheFiles) {
+					diskCacheFiles.add(img);
+				}
+				return getFromDisk(url);
+			}
+
 		} catch (MalformedURLException e) {
 			Log.e(ReddimgApp.APP_NAME, e.toString());
 		} catch (IOException e) {
@@ -168,26 +164,28 @@ public class ImageCache {
 	
 	private boolean checkDiskCacheSize(long contentLength) {
 		long totSize = contentLength;
-		for(File f : diskCacheFiles) {
-			totSize += f.length();
-		}
-
 		long cacheSize = getMaxCacheSize();
-		while(totSize > cacheSize && diskCacheFiles.size() > 0) {
-			File oldest = diskCacheFiles.first();
-			diskCacheFiles.remove(oldest);
-			totSize -= oldest.length();
-			if(oldest.exists() && 
-			   oldest.getAbsolutePath().contains(NET_ACUTTONE_REDDIMG) && 
-			   oldest.isFile() && 
-			   oldest.getName().startsWith(FILE_PREFIX)) {
-				Log.d(ReddimgApp.APP_NAME, "Deleting from disk " + oldest.getName());
-				oldest.delete();
+		synchronized (diskCacheFiles) {
+			for (File f : diskCacheFiles) {
+				totSize += f.length();
+			}
+
+			while (totSize > cacheSize && diskCacheFiles.size() > 0) {
+				File oldest = diskCacheFiles.first();
+				diskCacheFiles.remove(oldest);
+				totSize -= oldest.length();
+				if (oldest.exists()
+					&& oldest.getAbsolutePath().contains(NET_ACUTTONE_REDDIMG) 
+					&& oldest.isFile()
+					&& oldest.getName().startsWith(FILE_PREFIX)) {
+						Log.d(ReddimgApp.APP_NAME, "Deleting from disk " + oldest.getName());
+						oldest.delete();
+				}
 			}
 		}
 		StatFs stat = new StatFs(reddimgDir.getPath());
-		double freeSpace = (double)stat.getAvailableBlocks() *(double)stat.getBlockSize();
-		
+		double freeSpace = (double) stat.getAvailableBlocks() * (double) stat.getBlockSize();
+
 		return totSize < cacheSize && freeSpace > MIN_FREE_SPACE;
 	}
 	
@@ -196,13 +194,13 @@ public class ImageCache {
 		for(File f : diskCacheFiles) {
 			totSize += f.length();
 		}
-		return totSize / MEGABYTE;
+		return totSize / ReddimgApp.MEGABYTE;
 	}
 
 	private long getMaxCacheSize() {
 		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		int size = Integer.parseInt(sp.getString(PrefsActivity.CACHE_SIZE_KEY, PrefsActivity.DEFAULT_CACHE_SIZE));
-		return size * MEGABYTE;
+		return size * ReddimgApp.MEGABYTE;
 	}
 	
 	public void clearCache() {
