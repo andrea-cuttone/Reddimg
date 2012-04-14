@@ -200,9 +200,10 @@ public class RedditClient {
 	}
 	
 	private boolean isUrlValid(String url) {
-		if(url.matches(".*(gif|jpeg|jpg|png)$") == false) {
+		if(url.matches(".*(jpeg|jpg|png)$") == false) {
 			return false;
 		}
+		boolean valid = true;
 		HttpURLConnection connection = null;
 		try {
 			connection = (HttpURLConnection) new URL(url).openConnection();
@@ -210,18 +211,17 @@ public class RedditClient {
 			int contentLength = connection.getContentLength();
 			if (contentLength > MAX_IMAGE_SIZE) {
 				Log.w(ReddimgApp.APP_NAME, url + " exceeds max image size");
-				return false;
+				valid = false;
 			}
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			Log.e(ReddimgApp.APP_NAME, e.toString());
-		} catch (IOException e) {
-			Log.e(ReddimgApp.APP_NAME, e.toString());
+			valid = false;
 		} finally {
 			if (connection != null) {
 				connection.disconnect();
 			}
 		}
-		return true;
+		return valid;
 	}
 	
 	private void saveLoginInfo(List<Cookie> cookies) {
