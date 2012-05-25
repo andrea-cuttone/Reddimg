@@ -213,7 +213,7 @@ public class ImageCache {
 		if(url.length() > 256) {
 			url = url.substring(url.length() - 256);
 		}
-		url = url.replaceAll("[\\W&&[^.]]+", "_");
+		url = url.replaceAll("\\W+", "_");
 		return reddimgDir.getAbsolutePath() + "/" + url;
 	}
 
