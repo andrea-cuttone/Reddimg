@@ -329,6 +329,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		switch (item.getItemId()) {
 		case R.id.menuitem_firstpage:
 			page = 0;
+			ReddimgApp.instance().getLinksQueue().initSubreddits();
 			loadLinks();
 			return true;
 		case R.id.menuitem_login:
