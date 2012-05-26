@@ -1,5 +1,6 @@
 package net.acuttone.reddimg.core;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,14 +34,14 @@ public class RedditLinkQueue {
 		subreddits = sb.toString();
 	}
 
-	public RedditLink get(int index) {
+	public RedditLink get(int index) throws IOException {
 		while(index >= links.size()) {
 			getNewLinks();
 		}
 		return links.get(index);
 	}	
 	
-	private void getNewLinks() {
+	private void getNewLinks() throws IOException {
 		Log.d(ReddimgApp.APP_NAME, "Fetching links from " + subreddits);
 		List<RedditLink> newLinks = new ArrayList<RedditLink>();
 		String result = ReddimgApp.instance().getRedditClient().getLinks(newLinks, subreddits, lastT3);

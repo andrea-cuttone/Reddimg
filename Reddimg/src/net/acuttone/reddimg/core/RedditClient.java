@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +40,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.SharedPreferences;
@@ -148,7 +150,7 @@ public class RedditClient {
 		return success;
 	}
 	
-	public String getLinks(List<RedditLink> newLinks, String subreddits, String lastT3) {
+	public String getLinks(List<RedditLink> newLinks, String subreddits, String lastT3) throws IOException {
 		boolean showNSFW = ReddimgApp.instance().getPrefs().getBoolean("show_nsfw", false);
 		BufferedReader in = null;
 		try {
@@ -194,7 +196,11 @@ public class RedditClient {
 				newLinks.add(newRedditLink);
 				Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 			}
-		} catch (Exception e) {
+		} catch (IllegalStateException e) {
+			Log.e(ReddimgApp.APP_NAME, e.toString());
+		} catch (URISyntaxException e) {
+			Log.e(ReddimgApp.APP_NAME, e.toString());
+		} catch (JSONException e) {
 			Log.e(ReddimgApp.APP_NAME, e.toString());
 		} finally {
 			if (in != null) {

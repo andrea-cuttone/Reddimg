@@ -1,5 +1,6 @@
 package net.acuttone.reddimg.views;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -38,6 +39,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 public class GalleryActivity extends Activity implements OnSharedPreferenceChangeListener {
 	public static final int PICS_PER_PAGE = 12;
@@ -132,7 +134,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			imgviewLeft.setAlpha(255);
 		}
 
-		AsyncTask t = new AsyncTask<Void, Void, Void>() {
+		AsyncTask t = new AsyncTask<Void, Void, Boolean>() {
 			
 			private ProgressDialog progressDialog;
 			private ImageAdapter imageAdapter;
@@ -147,26 +149,35 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			}
 
 			@Override
-			protected Void doInBackground(Void... params) {
-				int startPos = page * PICS_PER_PAGE;
-				int endPos = (page + 1) * PICS_PER_PAGE;
-				for (int i = startPos; i < endPos; i++) {
-					imageAdapter.getItems().add(new GridItem(ReddimgApp.instance().getLinksQueue().get(i)));
+			protected Boolean doInBackground(Void... params) {
+				try {
+					int startPos = page * PICS_PER_PAGE;
+					int endPos = (page + 1) * PICS_PER_PAGE;
+					for (int i = startPos; i < endPos; i++) {
+						RedditLink link = ReddimgApp.instance().getLinksQueue().get(i);
+						imageAdapter.getItems().add(new GridItem(link));
+					}
+				} catch (IOException e) {
+					return false;
 				}
-				return null;
+				return true;
 			}
 			
-			protected void onPostExecute(Void result) {
+			protected void onPostExecute(Boolean result) {
 				progressDialog.dismiss();
 
 				for (LoadLinksAsyncTask t : loadLinkTasks) {
 					t.cancel(true);
 				}
 				loadLinkTasks.clear();
-				for (GridItem item : imageAdapter.getItems()) {
-					LoadLinksAsyncTask task = new LoadLinksAsyncTask(imageAdapter, item);
-					loadLinkTasks.add(task);
-					task.execute(null);
+				if (result == true) {
+					for (GridItem item : imageAdapter.getItems()) {
+						LoadLinksAsyncTask task = new LoadLinksAsyncTask(imageAdapter, item);
+						loadLinkTasks.add(task);
+						task.execute(null);
+					}
+				} else {
+					Toast.makeText(GalleryActivity.this, "Error loading links (no connection?)", Toast.LENGTH_LONG).show();
 				}
 			}
 		};
@@ -277,7 +288,9 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			view = li.inflate(R.layout.grid_item, null);
 			ImageView iv = (ImageView) view.findViewById(R.id.grid_item_image);
 			Bitmap thumb = items.get(position).getThumb();
-			iv.setImageBitmap(thumb);
+			if(thumb != null) {
+				iv.setImageBitmap(thumb);
+			}
 			return view;
 		}
 

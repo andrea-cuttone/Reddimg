@@ -1,5 +1,7 @@
 package net.acuttone.reddimg.views;
 
+import java.io.IOException;
+
 import net.acuttone.reddimg.R;
 import net.acuttone.reddimg.core.ReddimgApp;
 import net.acuttone.reddimg.core.RedditClient;
@@ -14,6 +16,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -122,13 +125,22 @@ public class LinkViewerActivity extends Activity {
 
 			@Override
 			protected Object[] doInBackground(Integer... params) {
-				RedditLink redditLink = ReddimgApp.instance().getLinksQueue().get(params[0]);
-				publishProgress(redditLink);
-				Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
-				Object [] result = new Object[2];
-				result[0] = bitmap;
-				result[1] = redditLink;
-				return result;
+				RedditLink redditLink = null;
+				try {
+					redditLink = ReddimgApp.instance().getLinksQueue().get(params[0]);
+				} catch (IOException e) {
+					Log.e(ReddimgApp.APP_NAME, e.toString());
+				}
+				if(redditLink != null) {
+					publishProgress(redditLink);
+					Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
+					Object [] result = new Object[2];
+					result[0] = bitmap;
+					result[1] = redditLink;
+					return result;
+				} else {
+					return null;
+				}
 			}
 			
 			@Override
@@ -142,14 +154,23 @@ public class LinkViewerActivity extends Activity {
 			@Override
 			protected void onPostExecute(Object[] result) {
 				super.onPostExecute(result);
-				textviewLoading.setText("");
-				Bitmap bitmap = (Bitmap) ((Object []) result)[0];
-				RedditLink redditLink = (RedditLink) ((Object []) result)[1];
-				viewBitmap.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-				viewBitmap.setAdjustViewBounds(true);
-				viewBitmap.setImageBitmap(bitmap);
-				refreshVoteIndicators(redditLink); 
-				fadeArrows();
+				final String errorMsg = "Error loading link (no connection?)";
+				if(result != null) {
+					Bitmap bitmap = (Bitmap) ((Object []) result)[0];
+					if(bitmap != null) {
+						textviewLoading.setText("");
+						RedditLink redditLink = (RedditLink) ((Object []) result)[1];
+						viewBitmap.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+						viewBitmap.setAdjustViewBounds(true);
+						viewBitmap.setImageBitmap(bitmap);
+						refreshVoteIndicators(redditLink); 
+						fadeArrows();
+					} else {
+						textviewLoading.setText(errorMsg);
+					}
+				} else {
+					textviewLoading.setText(errorMsg);
+				}
 			}
 		};
 		loadTask.execute(currentLinkIndex);
@@ -261,21 +282,23 @@ public class LinkViewerActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		RedditLink currentLink = null;
 		Intent intent = null;
+		RedditLink currentLink = null;
+		try {
+			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
+		} catch (IOException e) {
+			Log.e(ReddimgApp.APP_NAME, e.toString());
+		}
 		switch (item.getItemId()) {
 		case R.id.menuitem_upvote:
-			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
 			refreshVoteIndicators(currentLink);
 			return true;
 		case R.id.menuitem_downvote:
-			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
 			refreshVoteIndicators(currentLink);
 			return true;
 		case R.id.menuitem_openimg:
-			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 			String imageDiskPath = ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl());
 			Uri uri = Uri.parse("file://" + imageDiskPath);
 			intent = new Intent();
@@ -284,7 +307,6 @@ public class LinkViewerActivity extends Activity {
 			startActivity(intent);
 			return true;
 		case R.id.menuitem_opencomments:
-			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
 			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentLink.getCommentUrl() + ".compact"));
 			startActivity(intent);
 			return true;
