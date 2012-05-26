@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <array name="subredditMode">
-        <item>Front page</item>
-        <item>My subreddits (only logged users)</item>
-        <item>Manual selection</item>
-    </array>
-
     <string-array name="titleSizeKeys">
         <item>Small</item>
         <item>Medium</item>
