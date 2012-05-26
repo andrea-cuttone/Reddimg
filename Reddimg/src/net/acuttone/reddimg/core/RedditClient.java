@@ -58,8 +58,6 @@ public class RedditClient {
 	public final static String DOWNVOTE = "-1";
 	public final static String NO_VOTE = "0";
 
-	private static final int MAX_IMAGE_SIZE = 2 * ReddimgApp.MEGABYTE;
-	
 	private HttpClient httpclient;
 	private String uh;
 	private HttpContext localContext;
@@ -218,25 +216,7 @@ public class RedditClient {
 		if(url.matches(".*(jpeg|jpg|png)$") == false) {
 			return false;
 		}
-		boolean valid = true;
-		HttpURLConnection connection = null;
-		try {
-			connection = (HttpURLConnection) new URL(url).openConnection();
-			connection.setConnectTimeout(2000);
-			int contentLength = connection.getContentLength();
-			if (contentLength > MAX_IMAGE_SIZE) {
-				Log.w(ReddimgApp.APP_NAME, url + " exceeds max image size");
-				valid = false;
-			}
-		} catch (Exception e) {
-			Log.e(ReddimgApp.APP_NAME, e.toString());
-			valid = false;
-		} finally {
-			if (connection != null) {
-				connection.disconnect();
-			}
-		}
-		return valid;
+		return true;
 	}
 	
 	private void saveLoginInfo(List<Cookie> cookies) {

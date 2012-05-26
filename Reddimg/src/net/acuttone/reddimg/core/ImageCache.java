@@ -27,6 +27,7 @@ public class ImageCache {
 	
 	private static final long MIN_FREE_SPACE = 5 * ReddimgApp.MEGABYTE;
 	private static final String FILE_PREFIX = "__RDIMG_";
+	private static final int MAX_IMAGE_SIZE = 2 * ReddimgApp.MEGABYTE;
 	
 	private File reddimgDir;
 	private TreeSet<File> diskCacheFiles;
@@ -113,6 +114,10 @@ public class ImageCache {
 			connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setConnectTimeout(5000);
 			int contentLength = connection.getContentLength();
+			if (contentLength > MAX_IMAGE_SIZE) {
+				Log.w(ReddimgApp.APP_NAME, url + " exceeds max image size");
+				return null;
+			}
 			boolean enoughSpace = false;
 			synchronized (diskCacheFiles) {
 				enoughSpace = checkDiskCacheSize(contentLength);
