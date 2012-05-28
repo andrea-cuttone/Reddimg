@@ -41,11 +41,6 @@ public class LoginActivity extends Activity {
 			}
 
 		});
-		
-		// TODO: remove
-		etUsername.setText("t3rrordar");
-		EditText etPassword = (EditText) findViewById(R.id.etPassword);
-		etPassword.setText("matrix");
 	}
 
 	class LoginTask extends AsyncTask<Void, Void, Boolean> {
