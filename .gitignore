@@ -1,5 +1,3 @@
-Reddimg/bin
-Reddimg/gen
-videos/*
-Reddimg/proguard/*
-*todo.ods*
+source/bin
+source/gen
+source/proguard
