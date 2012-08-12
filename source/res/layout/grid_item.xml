@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:id="@+id/GridItem"
    android:layout_width="wrap_content"
    android:layout_height="fill_parent"
@@ -8,6 +8,11 @@
    
    <ImageView android:id="@+id/grid_item_image"
       android:layout_width="fill_parent"
-      android:layout_height="fill_parent">
-   </ImageView>
-</LinearLayout>
+      android:layout_height="fill_parent" />
+   <TextView android:id="@+id/grid_item_text"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom"
+      android:background="#88555555"
+      android:textColor="#FFFFFF" />
+</FrameLayout>

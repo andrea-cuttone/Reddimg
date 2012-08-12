@@ -165,9 +165,13 @@ public class RedditClient {
 			JSONObject jsonObject = new JSONObject(sb.toString());
 			JSONObject data = (JSONObject) jsonObject.get("data");
 			JSONArray children = (JSONArray) data.get("children");
+			if(children.length() == 0) { // no more children, start over
+				lastT3 = "";
+			}
 			for (int j = 0; j < children.length(); j++) {
 				JSONObject obj = (JSONObject) children.get(j);
 				JSONObject cData = (JSONObject) obj.get("data");
+				lastT3 = (String) cData.get("id");
 				String url = (String) cData.get("url");
 				if(isUrlValid(url) == false) {
 					continue;
@@ -189,7 +193,6 @@ public class RedditClient {
 				if(cData.isNull("likes") == false) {
 					voteStatus = cData.getBoolean("likes");
 				}
-				lastT3 = (String) cData.get("id");
 				RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus, thumbUrl);
 				newLinks.add(newRedditLink);
 				Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");

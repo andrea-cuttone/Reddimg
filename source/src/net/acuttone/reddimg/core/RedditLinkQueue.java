@@ -12,44 +12,52 @@ public class RedditLinkQueue {
 	private List<RedditLink> links;
 	private String lastT3;
 	private String subreddits;
+	private Object lock = new Object();
 	
 	public RedditLinkQueue() {
 		initSubreddits();
 	}
 	
 	public void initSubreddits() {
-		links = new ArrayList<RedditLink>();
-		lastT3 = "";
-		List<String> list = SubredditsPickerActivity.getSubredditsFromPref();
-		if(list.isEmpty()) {
-			list = SubredditsPickerActivity.getDefaultSubreddits();
-		}
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < list.size(); i++) {
-			sb.append(list.get(i));
-			if(i != list.size() -1) {
-				sb.append("+");
+		synchronized (lock) {
+			links = new ArrayList<RedditLink>();
+			lastT3 = "";
+			List<String> list = SubredditsPickerActivity
+					.getSubredditsFromPref();
+			if (list.isEmpty()) {
+				list = SubredditsPickerActivity.getDefaultSubreddits();
 			}
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < list.size(); i++) {
+				sb.append(list.get(i));
+				if (i != list.size() - 1) {
+					sb.append("+");
+				}
+			}
+			subreddits = sb.toString();
 		}
-		subreddits = sb.toString();
 	}
 
 	public RedditLink get(int index) throws IOException {
-		while(index >= links.size()) {
-			getNewLinks();
+		//return new RedditLink("0", "image", "comment.url", "a very stupidly long title", "author", "subreddit", 666, true, "thumb");
+		synchronized(lock) {
+			if(index >= links.size()) {
+				return null;
+			} else {
+				return links.get(index);
+			}
 		}
-		return links.get(index);
 	}	
 	
-	private void getNewLinks() throws IOException {
+	public void getNewLinks() throws IOException {
 		Log.d(ReddimgApp.APP_NAME, "Fetching links from " + subreddits);
 		List<RedditLink> newLinks = new ArrayList<RedditLink>();
 		String result = ReddimgApp.instance().getRedditClient().getLinks(newLinks, subreddits, lastT3);
-		if (result != null && !result.equals("")) {
-			lastT3 = result;
-		}
+		synchronized (lock) {
+			if (result != null) {
+				lastT3 = result;
+			}
 
-		synchronized (links) {
 			for (RedditLink l : newLinks) {
 				if (links.contains(l) == false) {
 					links.add(l);

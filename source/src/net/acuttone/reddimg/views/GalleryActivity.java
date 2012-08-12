@@ -3,7 +3,6 @@ package net.acuttone.reddimg.views;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import net.acuttone.reddimg.R;
 import net.acuttone.reddimg.core.ReddimgApp;
@@ -11,17 +10,12 @@ import net.acuttone.reddimg.core.RedditLink;
 import net.acuttone.reddimg.prefs.PrefsActivity;
 import net.acuttone.reddimg.prefs.SubredditsPickerActivity;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.Interpolator;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,26 +28,30 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 public class GalleryActivity extends Activity implements OnSharedPreferenceChangeListener {
-	public static final int PICS_PER_PAGE = 12;
-	private static final String PAGE_NUMBER = "PAGE_NUMBER";
+	private static final String CURRENT = "CURRENT";
 
+	private int current;
 	private int thumbSize;
-	private int page;
-	private Paint paint;
-	private Random rnd;
-	private GridView gridView;
-	private List<LoadLinksAsyncTask> loadLinkTasks;
-	private ImageView imgviewLeft;
-	private ImageView imgviewRight;
 	private boolean doReload;
+	private List<LoadThumbTask> tasks;
+	private int pendingTasks;
+	private ImageAdapter imageAdapter;
+	private GridView gridView;
+	private Button btnLoadMore;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -65,8 +63,10 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		
 		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		
-		rnd = new Random();
-		page = savedInstanceState == null ? 0 : savedInstanceState.getInt(PAGE_NUMBER);
+		tasks = new ArrayList<LoadThumbTask>();
+		pendingTasks = 0;
+		
+		current = savedInstanceState == null ? 0 : savedInstanceState.getInt(CURRENT);
 		
 		gridView = (GridView) findViewById(R.id.gridview_gallery);
 		gridView.setOnItemClickListener(new OnItemClickListener() {
@@ -75,134 +75,87 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				Log.d(ReddimgApp.APP_NAME, "" + position);
 				Intent i = new Intent(getApplicationContext(), LinkViewerActivity.class);
-				i.putExtra(LinkViewerActivity.LINK_INDEX, page * PICS_PER_PAGE + position);
+				i.putExtra(LinkViewerActivity.LINK_INDEX, position);
 				startActivity(i);
 			}
 		});
 		
-		imgviewLeft = (ImageView) findViewById(R.id.imageview_leftarrow);
-		imgviewLeft.setOnClickListener(new OnClickListener() {
+		thumbSize = ReddimgApp.instance().getScreenW() / 3;
+		imageAdapter = new ImageAdapter(getBaseContext());
+		gridView.setAdapter(imageAdapter);		
+		btnLoadMore = (Button) findViewById(R.id.gridview_loadmore);
+		btnLoadMore.setOnClickListener(new OnClickListener() {
 			
 			@Override
-			public void onClick(View v) {
-				if(page > 0) {
-					page--;
-					loadLinks();
-				}
+			public void onClick(View arg0) {
+				loadMore();
 			}
 		});
-		imgviewRight = (ImageView) findViewById(R.id.imageview_rightarrow);
-		imgviewRight.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				page++;
-				loadLinks();
-			}
-		});
-		loadLinkTasks = new ArrayList<LoadLinksAsyncTask>();
-		loadLinks();
-		doReload = false;
+		ReddimgApp.instance().startLinksQueueTimer();
+		loadMore();
+	}
+
+	private void loadMore() {
+		btnLoadMore.setText("Loading...");
+		btnLoadMore.setEnabled(false);
+		tasks = new ArrayList<LoadThumbTask>();
+		pendingTasks = 12;
+		for(int i = 0; i < pendingTasks; i++) {
+			LoadThumbTask t = new LoadThumbTask();
+			tasks.add(t);
+			t.execute(current);
+			current++;
+		}
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
 		if(doReload) {
-			loadLinks();
+			loadMore();
 			doReload = false;
 		}
 	}
 	
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		outState.putInt(PAGE_NUMBER, page);
+		outState.putInt(CURRENT, current);
 		super.onSaveInstanceState(outState);
 	}
-
-	public void loadLinks() {
-		int numCols = 2;
-		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-			numCols = 4;
-		}
-		gridView.setNumColumns(numCols);
-		thumbSize = ReddimgApp.instance().getScreenW() / numCols;
-
-		if (page == 0) {
-			imgviewLeft.setAlpha(0);
-		} else {
-			imgviewLeft.setAlpha(255);
-		}
-
-		AsyncTask t = new AsyncTask<Void, Void, Boolean>() {
-			
-			private ProgressDialog progressDialog;
-			private ImageAdapter imageAdapter;
-
-			@Override
-			protected void onPreExecute() {
-				super.onPreExecute();
-				progressDialog = ProgressDialog.show(GalleryActivity.this, "Reddimg", "Fetching links...");
-				List<GridItem> items = new ArrayList<GridItem>();
-				imageAdapter = new ImageAdapter(GalleryActivity.this, items);
-				gridView.setAdapter(imageAdapter);
-			}
-
-			@Override
-			protected Boolean doInBackground(Void... params) {
-				try {
-					int startPos = page * PICS_PER_PAGE;
-					int endPos = (page + 1) * PICS_PER_PAGE;
-					for (int i = startPos; i < endPos; i++) {
-						RedditLink link = ReddimgApp.instance().getLinksQueue().get(i);
-						imageAdapter.getItems().add(new GridItem(link));
-					}
-				} catch (IOException e) {
-					return false;
-				}
-				return true;
-			}
-			
-			protected void onPostExecute(Boolean result) {
-				progressDialog.dismiss();
-
-				for (LoadLinksAsyncTask t : loadLinkTasks) {
-					t.cancel(true);
-				}
-				loadLinkTasks.clear();
-				if (result == true) {
-					for (GridItem item : imageAdapter.getItems()) {
-						LoadLinksAsyncTask task = new LoadLinksAsyncTask(imageAdapter, item);
-						loadLinkTasks.add(task);
-						task.execute(null);
-					}
-				} else {
-					Toast.makeText(GalleryActivity.this, "Error loading links (no connection?)", Toast.LENGTH_LONG).show();
-				}
-			}
-		};
-		
-		t.execute(null);
-	}
-
-	private class LoadLinksAsyncTask extends AsyncTask<Void, Void, Void> {
-
-		private ImageAdapter imageAdapter;
-		private GridItem item;
-
-		public LoadLinksAsyncTask(ImageAdapter imageAdapter, GridItem item) {
-			this.imageAdapter = imageAdapter;
-			this.item = item;
-		}
+	
+	private class LoadThumbTask extends AsyncTask<Integer, Void, GridItem> {
 
 		@Override
-		protected Void doInBackground(Void... params) {
-			if (item != null && item.getRedditLink() != null) {
-				Bitmap thumb = ReddimgApp.instance().getImageCache().getImage(item.getRedditLink().getThumbUrl());
-				Bitmap resizedThumb = resizeThumb(thumb);
-				item.setThumb(resizedThumb);
+		protected GridItem doInBackground(Integer... arg0) {
+				try {
+					RedditLink link = null;
+					while(link == null) {
+						link = ReddimgApp.instance().getLinksQueue().get(arg0[0]);
+					}
+					Bitmap thumb = ReddimgApp.instance().getImageCache().getImage(link.getThumbUrl());
+					Bitmap resized = resizeThumb(thumb);
+					if(resized != null) {
+						return new GridItem(link, resized);
+					} else {
+						return null;
+					}
+				} catch (IOException e) {
+					
+				}
+				return null;
+		}
+		
+		@Override
+		protected void onPostExecute(GridItem result) {
+			super.onPostExecute(result);
+			if(result != null) {
+				imageAdapter.addItem(result);
 			}
-			return null;
+			pendingTasks--;
+			if(pendingTasks == 0) {
+				btnLoadMore.setText("Load more");
+				btnLoadMore.setEnabled(true);
+			}
 		}
 		
 		private Bitmap resizeThumb(Bitmap thumbBmp) {
@@ -224,12 +177,6 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			}
 			return null;
 		}
-		
-		@Override
-		protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-			imageAdapter.notifyDataSetChanged();
-		}
 	}
 
 	private class GridItem {
@@ -237,13 +184,9 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		private RedditLink redditLink;
 		private Bitmap thumb;
 		
-		public GridItem(RedditLink link) {
+		public GridItem(RedditLink link, Bitmap thumb) {
 			this.redditLink = link;
-		    int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)); 
-		    thumb = Bitmap.createBitmap(thumbSize, thumbSize, Bitmap.Config.ARGB_4444);
-		    paint = new Paint();
-		    paint.setColor(color);
-		    new Canvas(thumb).drawRect(new Rect(0, 0, thumbSize, thumbSize), paint);
+			this.thumb = thumb;
 		}
 		
 		public RedditLink getRedditLink() {
@@ -253,28 +196,21 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		public Bitmap getThumb() {
 			return thumb;
 		}
-
-		public void setThumb(Bitmap thumb) {
-			this.thumb = thumb;
-		}
+		
 	}
 	
 	private class ImageAdapter extends BaseAdapter {
 		private List<GridItem> items;
 
-		public ImageAdapter(Context context, List<GridItem> items) {
-			this.items = items;
+		public ImageAdapter(Context context) {
+			this.items = new ArrayList<GalleryActivity.GridItem>();
 		}
 
-		@Override
-		public void notifyDataSetChanged() {
-			super.notifyDataSetChanged();
+		public void addItem(GridItem itm) {
+			items.add(itm);
+			notifyDataSetChanged();
 		}
 		
-		public List<GridItem> getItems() {
-			return items;
-		}
-
 		@Override
 		public int getCount() {
 			return items.size();
@@ -282,15 +218,29 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			View view = convertView;
-			// todo: attempt to reuse convertView
+			if(convertView != null) {
+				return convertView;
+			}
 			LayoutInflater li = getLayoutInflater();
-			view = li.inflate(R.layout.grid_item, null);
+			View view = li.inflate(R.layout.grid_item, null);
 			ImageView iv = (ImageView) view.findViewById(R.id.grid_item_image);
 			Bitmap thumb = items.get(position).getThumb();
 			if(thumb != null) {
 				iv.setImageBitmap(thumb);
 			}
+			TextView tv = (TextView) view.findViewById(R.id.grid_item_text);
+			String title  = items.get(position).getRedditLink().getTitle();
+			if(title.length() > 40) {
+				title = title.substring(0, 40) + "...";
+			}
+			tv.setText(title);
+			Animation tranAnim = new TranslateAnimation(0, 0f, 50f, 0f);
+			AlphaAnimation alphaAnim = new AlphaAnimation(0.5f, 1f);
+			AnimationSet as = new AnimationSet(true);
+			as.addAnimation(alphaAnim);
+			as.addAnimation(tranAnim);
+			as.setDuration(700);
+			view.startAnimation(as);
 			return view;
 		}
 
@@ -328,9 +278,9 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		Intent intent = null;
 		switch (item.getItemId()) {
 		case R.id.menuitem_firstpage:
-			page = 0;
+			current = 0;
 			ReddimgApp.instance().getLinksQueue().initSubreddits();
-			loadLinks();
+			loadMore();
 			return true;
 		case R.id.menuitem_login:
 			if (ReddimgApp.instance().getRedditClient().isLoggedIn()) {
@@ -352,7 +302,8 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		for (LoadLinksAsyncTask t : loadLinkTasks) {
+		ReddimgApp.instance().stopLinksQueueTimer();
+		for (LoadThumbTask t : tasks) {
 			t.cancel(true);
 		}
 		ReddimgApp.instance().getPrefs().unregisterOnSharedPreferenceChangeListener(this);    
@@ -361,7 +312,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
-			page = 0;
+			current = 0;
 			doReload = true;
 		}
 	}

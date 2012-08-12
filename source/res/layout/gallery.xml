@@ -1,22 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout 
-		android:layout_height="fill_parent" android:layout_width="fill_parent"
-		android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
-   android:background="#000000">
-<GridView xmlns:android="http://schemas.android.com/apk/res/android"
-   android:id="@+id/gridview_gallery"
-   android:layout_width="fill_parent"
-   android:layout_height="fill_parent"
-    android:padding="0dp"
-    android:verticalSpacing="0dp"
-    android:horizontalSpacing="0dp"
-    android:numColumns="2"
-    android:stretchMode="columnWidth"
-    android:gravity="center_horizontal"
-    android:background="#000000">
-</GridView>
-<ImageView android:id="@+id/imageview_leftarrow" android:layout_gravity="bottom|left" android:layout_height="96dp"
-		   android:layout_width="64dp" android:src="@drawable/left_arrow" android:layout_marginLeft="8dp"></ImageView>
-<ImageView android:id="@+id/imageview_rightarrow" android:layout_gravity="bottom|right" android:layout_height="96dp"
-		   android:layout_width="64dp" android:src="@drawable/right_arrow" android:layout_marginRight="8dp"></ImageView>
-</FrameLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <GridView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/gridview_gallery"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:background="#000000"
+        android:gravity="top"
+        android:horizontalSpacing="0dp"
+        android:numColumns="3"
+        android:padding="0dp"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="0dp"
+        android:layout_weight="1" 
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+         />
+    <Button
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/gridview_loadmore"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="#000000"
+            android:text="Load more"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="32dp" />
+</LinearLayout>
