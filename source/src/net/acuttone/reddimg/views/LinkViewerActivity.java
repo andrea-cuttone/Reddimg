@@ -26,15 +26,18 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.TranslateAnimation;
+import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.ViewSwitcher.ViewFactory;
 
-public class LinkViewerActivity extends Activity {
+public class LinkViewerActivity extends Activity implements ViewFactory {
 
 	public static final String LINK_INDEX = "LINK_INDEX";
 	private int currentLinkIndex;
-	private ImageView viewBitmap;
+	private ImageSwitcher switcher;
 	private ImageView viewLeftArrow;
 	private ImageView viewRightArrow;
 	private TextView textViewTitle;
@@ -43,6 +46,10 @@ public class LinkViewerActivity extends Activity {
 	private ImageView viewDownvote;
 	private TextView textviewLoading;
 	private AsyncTask<Integer, RedditLink, Object[]> loadTask;
+	private TranslateAnimation animToLeft1;
+	private TranslateAnimation animToLeft2;
+	private TranslateAnimation animToRight1;
+	private TranslateAnimation animToRight2;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -53,7 +60,16 @@ public class LinkViewerActivity extends Activity {
 		textViewTitle = (TextView) findViewById(R.id.textViewTitle);
 		textviewLoading = (TextView) findViewById(R.id.textviewLoading);
 		textviewLoading.setText("");
-		viewBitmap = (ImageView) findViewById(R.id.scrollViewLink).findViewById(R.id.imageViewLink);
+		switcher = (ImageSwitcher) findViewById(R.id.scrollViewLink).findViewById(R.id.image_switcher);
+		switcher.setFactory(this);
+		animToLeft1 = new TranslateAnimation(1000, 0, 0, 0);
+		animToLeft1.setDuration(500);
+		animToLeft2 = new TranslateAnimation(0, -1000, 0, 0);
+		animToLeft2.setDuration(500);
+		animToRight1 = new TranslateAnimation(0, 1000, 0, 0);
+		animToRight1.setDuration(500);
+		animToRight2 = new TranslateAnimation(-1000, 0, 0, 0);
+		animToRight2.setDuration(500);
 		viewUpvote = (ImageView) findViewById(R.id.imageupvote);
 		viewUpvote.setVisibility(View.GONE);
 		viewDownvote = (ImageView) findViewById(R.id.imagedownvote);
@@ -66,6 +82,8 @@ public class LinkViewerActivity extends Activity {
 			public void onClick(View v) {
 				if(currentLinkIndex > 0) {
 					currentLinkIndex--;
+					switcher.setInAnimation(animToRight2);
+					switcher.setOutAnimation(animToRight1);  
 					loadImage();
 				}
 			}
@@ -76,6 +94,8 @@ public class LinkViewerActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				currentLinkIndex++;
+				switcher.setInAnimation(animToLeft1);  
+				switcher.setOutAnimation(animToLeft2);
 				loadImage();
 			}
 		});
@@ -160,9 +180,7 @@ public class LinkViewerActivity extends Activity {
 					if(bitmap != null) {
 						textviewLoading.setText("");
 						RedditLink redditLink = (RedditLink) ((Object []) result)[1];
-						viewBitmap.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-						viewBitmap.setAdjustViewBounds(true);
-						viewBitmap.setImageBitmap(bitmap);
+						switcher.setImageDrawable(new BitmapDrawable(bitmap));
 						refreshVoteIndicators(redditLink); 
 						fadeArrows();
 					} else {
@@ -230,15 +248,15 @@ public class LinkViewerActivity extends Activity {
 	}
 	
 	private void recycleBitmap() {
-		Drawable drawable = viewBitmap.getDrawable();
+		/*Drawable drawable = switcher.get.getDrawable();
 		if (drawable instanceof BitmapDrawable) {
 		    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 		    Bitmap bitmap = bitmapDrawable.getBitmap();
-		    viewBitmap.setImageBitmap(null);
+		    switcher.setImageBitmap(null);
 		    if(bitmap != null && bitmap.isRecycled() == false) {
 		    	bitmap.recycle();
 		    }
-		}
+		}*/
 	}
 
 	public void updateTitle(RedditLink link) {
@@ -313,5 +331,13 @@ public class LinkViewerActivity extends Activity {
 		default:
 			return super.onContextItemSelected(item);
 		}
+	}
+
+	@Override
+	public View makeView() {
+		ImageView i = new ImageView(this);  
+		i.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+		i.setAdjustViewBounds(true);
+		return i;
 	}
 }
