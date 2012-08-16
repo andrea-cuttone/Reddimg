@@ -13,8 +13,11 @@ import net.acuttone.reddimg.core.RedditLink;
 import net.acuttone.reddimg.prefs.PrefsActivity;
 import net.acuttone.reddimg.utils.GifDecoder;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -39,6 +42,7 @@ import android.widget.ViewSwitcher.ViewFactory;
 
 public class LinkViewerActivity extends Activity {
 
+	private static final String TUTORIAL_SHOWN = "TUTORIAL_SHOWN";
 	public static final String LINK_INDEX = "LINK_INDEX";
 	private int currentLinkIndex;
 	private RedditLink currentLink;
@@ -135,8 +139,28 @@ public class LinkViewerActivity extends Activity {
 		});
 		
 		loadImage();
+		
+		if(ReddimgApp.instance().getPrefs().getBoolean(TUTORIAL_SHOWN, false) == false) {
+			showTutorial();
+		}
 	}
 	
+	private void showTutorial() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Tutorial");
+		builder.setMessage("Fling left and right to change image\n\nFling up and down to vote\n\nDouble tap to zoom")
+				.setCancelable(false).setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						Editor editor = ReddimgApp.instance().getPrefs().edit();
+						editor.putBoolean(TUTORIAL_SHOWN, true);
+						editor.commit();
+						dialog.dismiss();
+					}
+				});
+		AlertDialog dlg = builder.create();
+		dlg.show();
+	}
+
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		return gestureDetector.onTouchEvent(event);
