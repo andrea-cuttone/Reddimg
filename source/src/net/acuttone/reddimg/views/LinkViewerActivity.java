@@ -19,10 +19,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -301,21 +308,34 @@ public class LinkViewerActivity extends Activity {
 	}
 
 	public void updateTitle(RedditLink link) {
-		StringBuilder sb = new StringBuilder();
 		SharedPreferences sp = ReddimgApp.instance().getPrefs();
-		if(sp.getBoolean("showScore", false)) {
-			sb.append("[" + link.getScore() + "] ");
-		}
-		sb.append(link.getTitle());
-		if(sp.getBoolean("showAuthor", false)) {
-			sb.append(" | by " + link.getAuthor());
-		}		
-		if(sp.getBoolean("showSubreddit", false)) {
-			sb.append(" in " + link.getSubreddit());
-		}
-		textViewTitle.setText(sb.toString());
 		int size = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "24"));
 		textViewTitle.setTextSize(size);
+		SpannableStringBuilder builder = new SpannableStringBuilder();
+		if (sp.getBoolean("showScore", false)) {
+			SpannableString score = new SpannableString("[" + link.getScore() + "] ");
+			score.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, score.length(), 0);
+			score.setSpan(new RelativeSizeSpan(0.8f), 0, score.length(), 0);
+			builder.append(score);
+		}
+		SpannableString title = new SpannableString(link.getTitle());
+		title.setSpan(new ForegroundColorSpan(Color.WHITE), 0, title.length(), 0);
+		builder.append(title);
+		if (sp.getBoolean("showAuthor", false)) {
+			SpannableString author = new SpannableString(" by " + link.getAuthor());
+			author.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, author.length(), 0);
+			author.setSpan(new StyleSpan(Typeface.ITALIC), 0, author.length(), 0);
+			author.setSpan(new RelativeSizeSpan(0.8f), 0, author.length(), 0);
+			builder.append(author);
+		}
+		if (sp.getBoolean("showSubreddit", false)) {
+			SpannableString sub = new SpannableString(" in " + link.getSubreddit());
+			sub.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, sub.length(), 0);
+			sub.setSpan(new StyleSpan(Typeface.ITALIC), 0, sub.length(), 0);
+			sub.setSpan(new RelativeSizeSpan(0.8f), 0, sub.length(), 0);
+			builder.append(sub);
+		}
+		textViewTitle.setText(builder);
 	}
 	
 	@Override
