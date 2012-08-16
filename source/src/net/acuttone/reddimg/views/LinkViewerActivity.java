@@ -1,55 +1,59 @@
 package net.acuttone.reddimg.views;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import net.acuttone.reddimg.R;
 import net.acuttone.reddimg.core.ReddimgApp;
 import net.acuttone.reddimg.core.RedditClient;
 import net.acuttone.reddimg.core.RedditLink;
 import net.acuttone.reddimg.prefs.PrefsActivity;
+import net.acuttone.reddimg.utils.GifDecoder;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.TranslateAnimation;
+import android.widget.FrameLayout;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher.ViewFactory;
 
-public class LinkViewerActivity extends Activity implements ViewFactory {
+public class LinkViewerActivity extends Activity {
 
 	public static final String LINK_INDEX = "LINK_INDEX";
 	private int currentLinkIndex;
+	private RedditLink currentLink;
 	private ImageSwitcher switcher;
-	private ImageView viewLeftArrow;
-	private ImageView viewRightArrow;
 	private TextView textViewTitle;
-	private AsyncTask<Void,Integer,Void> fadeTask;
 	private ImageView viewUpvote;
 	private ImageView viewDownvote;
 	private TextView textviewLoading;
 	private AsyncTask<Integer, RedditLink, Object[]> loadTask;
+	private AsyncTask<String, Bitmap, Void> loadGifTask;
 	private TranslateAnimation animToLeft1;
 	private TranslateAnimation animToLeft2;
 	private TranslateAnimation animToRight1;
 	private TranslateAnimation animToRight2;
+	private GestureDetector gestureDetector;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -60,8 +64,18 @@ public class LinkViewerActivity extends Activity implements ViewFactory {
 		textViewTitle = (TextView) findViewById(R.id.textViewTitle);
 		textviewLoading = (TextView) findViewById(R.id.textviewLoading);
 		textviewLoading.setText("");
-		switcher = (ImageSwitcher) findViewById(R.id.scrollViewLink).findViewById(R.id.image_switcher);
-		switcher.setFactory(this);
+		switcher = (ImageSwitcher) findViewById(R.id.image_switcher);
+		switcher.setFactory(new ViewFactory() {
+			
+			@Override
+			public View makeView() {
+				ImageView i = new ImageView(LinkViewerActivity.this);  
+				i.setScaleType(ImageView.ScaleType.FIT_CENTER);
+				i.setAdjustViewBounds(true);
+				i.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+				return i;
+			}
+		});
 		animToLeft1 = new TranslateAnimation(1000, 0, 0, 0);
 		animToLeft1.setDuration(500);
 		animToLeft2 = new TranslateAnimation(0, -1000, 0, 0);
@@ -74,47 +88,58 @@ public class LinkViewerActivity extends Activity implements ViewFactory {
 		viewUpvote.setVisibility(View.GONE);
 		viewDownvote = (ImageView) findViewById(R.id.imagedownvote);
 		viewDownvote.setVisibility(View.GONE);
-		viewLeftArrow = (ImageView) findViewById(R.id.imageleftarrow);
-		viewRightArrow = (ImageView) findViewById(R.id.imagerightarrow);
-		viewLeftArrow.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if(currentLinkIndex > 0) {
-					currentLinkIndex--;
-					switcher.setInAnimation(animToRight2);
-					switcher.setOutAnimation(animToRight1);  
-					loadImage();
-				}
-			}
-
-		});
-		viewRightArrow.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				currentLinkIndex++;
-				switcher.setInAnimation(animToLeft1);  
-				switcher.setOutAnimation(animToLeft2);
-				loadImage();
-			}
-		});
-		ScrollView scrollView = (ScrollView) findViewById(R.id.scrollViewLink);
-		scrollView.setOnTouchListener(new OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				fadeArrows();
-				return false;
-			}
-		});
 		
 		if(savedInstanceState != null && savedInstanceState.containsKey(LINK_INDEX)) {
 			currentLinkIndex = savedInstanceState.getInt(LINK_INDEX);
 		} else {
 			currentLinkIndex = getIntent().getExtras().getInt(LINK_INDEX);
 		}
+		gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
+			
+			@Override
+			public boolean onDoubleTap(MotionEvent e) {
+				Intent i = new Intent(getApplicationContext(), FullImageActivity.class);
+				String imageDiskPath = ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl());
+				i.putExtra(FullImageActivity.IMAGE_NAME, imageDiskPath);
+				startActivity(i);
+				return super.onDoubleTapEvent(e);
+			}
+			
+			@Override
+			public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+				float deltax = e1.getX() - e2.getX();
+				float deltay = e1.getY() - e2.getY();
+				if (Math.abs(deltax) > 50) {
+					if (deltax < 0) {
+						currentLinkIndex--;
+						switcher.setInAnimation(animToRight2);
+						switcher.setOutAnimation(animToRight1);
+					} else {
+						currentLinkIndex++;
+						switcher.setInAnimation(animToLeft1);
+						switcher.setOutAnimation(animToLeft2);
+					}
+					loadImage();
+				} else {
+					if (Math.abs(deltay) > 50) {
+						if (deltay < 0) {
+							ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
+						} else {
+							ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
+						}
+						refreshVoteIndicators();
+					}
+				}
+				return super.onFling(e1, e2, velocityX, velocityY);
+			}
+		});
+		
 		loadImage();
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		return gestureDetector.onTouchEvent(event);
 	}
 	
 	@Override
@@ -132,15 +157,12 @@ public class LinkViewerActivity extends Activity implements ViewFactory {
 			@Override
 			protected void onPreExecute() {
 				super.onPreExecute();
-				if(fadeTask != null) {
-					fadeTask.cancel(true);
-				}
 				textviewLoading.setText("Loading links...");
-				viewLeftArrow.setAlpha(0);
-				viewRightArrow.setAlpha(0);
 				viewUpvote.setVisibility(View.GONE);
 				viewDownvote.setVisibility(View.GONE);
-				recycleBitmap();
+				if(loadGifTask != null) {
+					loadGifTask.cancel(true);
+				}
 			}
 
 			@Override
@@ -176,15 +198,62 @@ public class LinkViewerActivity extends Activity implements ViewFactory {
 				super.onPostExecute(result);
 				final String errorMsg = "Error loading link (no connection?)";
 				if(result != null) {
-					Bitmap bitmap = (Bitmap) ((Object []) result)[0];
-					if(bitmap != null) {
-						textviewLoading.setText("");
-						RedditLink redditLink = (RedditLink) ((Object []) result)[1];
-						switcher.setImageDrawable(new BitmapDrawable(bitmap));
-						refreshVoteIndicators(redditLink); 
-						fadeArrows();
+					currentLink = (RedditLink) ((Object []) result)[1];
+					if(currentLink.getUrl().endsWith("gif")) {
+						loadGifTask = new AsyncTask<String, Bitmap, Void>() {
+							
+							protected void onPreExecute() {
+								switcher.setInAnimation(null);
+								switcher.setOutAnimation(null);
+								refreshVoteIndicators(); 
+							}
+
+							@Override
+							protected Void doInBackground(String... arg0) {
+								try {
+									InputStream stream = new BufferedInputStream(new FileInputStream(arg0[0]));
+									GifDecoder dec = new GifDecoder();
+							        dec.read(stream);
+							        final int n = dec.getFrameCount();
+							        int i = 0;
+							        while(isCancelled() == false) {
+								        Bitmap bmp = dec.getFrame(i);
+				                        int t = dec.getDelay(i);
+				                        publishProgress(bmp);
+				                        try {
+											Thread.sleep(t);
+										} catch (InterruptedException e) {
+										}
+				                        i++;
+				                        if(i == n) {
+				                        	i = 0;
+				                        }
+							        }
+								} catch (FileNotFoundException e) {
+									
+								}
+								return null;
+							}
+							
+							protected void onCancelled() {
+								switcher.setImageDrawable(null);
+							}
+							
+							protected void onProgressUpdate(Bitmap... values) {
+								switcher.setImageDrawable(new BitmapDrawable(values[0]));
+								textviewLoading.setText("");
+							}
+						};
+						loadGifTask.execute(ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl()));
 					} else {
-						textviewLoading.setText(errorMsg);
+						Bitmap bitmap = (Bitmap) ((Object []) result)[0];
+						if(bitmap != null) {
+							textviewLoading.setText("");
+							switcher.setImageDrawable(new BitmapDrawable(bitmap));
+							refreshVoteIndicators(); 
+						} else {
+							textviewLoading.setText(errorMsg);
+						}
 					}
 				} else {
 					textviewLoading.setText(errorMsg);
@@ -194,69 +263,17 @@ public class LinkViewerActivity extends Activity implements ViewFactory {
 		loadTask.execute(currentLinkIndex);
 	}
 
-	private void fadeArrows() {
-		if (fadeTask == null || fadeTask.isCancelled() || fadeTask.getStatus().equals(AsyncTask.Status.FINISHED)) {
-			fadeTask = new AsyncTask<Void, Integer, Void>() {
-
-				@Override
-				protected Void doInBackground(Void... params) {
-					for (int alpha = 256; alpha >= 0 && isCancelled() == false; alpha -= 4) {
-						try {
-							Thread.sleep(20);
-						} catch (InterruptedException e) {
-						}
-						publishProgress(alpha);
-					}
-					return null;
-				}
-
-				@Override
-				protected void onProgressUpdate(Integer... values) {
-					if (isCancelled() == false) {
-						viewLeftArrow.setAlpha(values[0]);
-						viewRightArrow.setAlpha(values[0]);
-					}
-					super.onProgressUpdate(values);
-				}
-
-			};
-			fadeTask.execute(null);
-		}
-	}
-
-	private void refreshVoteIndicators(RedditLink redditLink) {
-		if(RedditClient.UPVOTE.equals(redditLink.getVoteStatus())) {
+	private void refreshVoteIndicators() {
+		if(RedditClient.UPVOTE.equals(currentLink.getVoteStatus())) {
 			viewUpvote.setVisibility(View.VISIBLE);
 			viewDownvote.setVisibility(View.GONE);
-		} else if(RedditClient.DOWNVOTE.equals(redditLink.getVoteStatus())) {
+		} else if(RedditClient.DOWNVOTE.equals(currentLink.getVoteStatus())) {
 			viewUpvote.setVisibility(View.GONE);
 			viewDownvote.setVisibility(View.VISIBLE);
 		} else {
 			viewUpvote.setVisibility(View.GONE);
 			viewDownvote.setVisibility(View.GONE);
 		}
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		recycleBitmap();
-		
-		if(fadeTask != null) {
-			fadeTask.cancel(true);
-		}
-	}
-	
-	private void recycleBitmap() {
-		/*Drawable drawable = switcher.get.getDrawable();
-		if (drawable instanceof BitmapDrawable) {
-		    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-		    Bitmap bitmap = bitmapDrawable.getBitmap();
-		    switcher.setImageBitmap(null);
-		    if(bitmap != null && bitmap.isRecycled() == false) {
-		    	bitmap.recycle();
-		    }
-		}*/
 	}
 
 	public void updateTitle(RedditLink link) {
@@ -285,37 +302,9 @@ public class LinkViewerActivity extends Activity implements ViewFactory {
 	}
 	
 	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		MenuItem upvoteItem = menu.findItem(R.id.menuitem_upvote);
-		MenuItem downvoteItem = menu.findItem(R.id.menuitem_downvote);
-		if(ReddimgApp.instance().getRedditClient().isLoggedIn()) {
-			upvoteItem.setEnabled(true);
-			downvoteItem.setEnabled(true);
-		} else {
-			upvoteItem.setEnabled(false);
-			downvoteItem.setEnabled(false);
-		}
-		return super.onPrepareOptionsMenu(menu);
-	}
-
-	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent = null;
-		RedditLink currentLink = null;
-		try {
-			currentLink = ReddimgApp.instance().getLinksQueue().get(currentLinkIndex);
-		} catch (IOException e) {
-			Log.e(ReddimgApp.APP_NAME, e.toString());
-		}
 		switch (item.getItemId()) {
-		case R.id.menuitem_upvote:
-			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
-			refreshVoteIndicators(currentLink);
-			return true;
-		case R.id.menuitem_downvote:
-			ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
-			refreshVoteIndicators(currentLink);
-			return true;
 		case R.id.menuitem_openimg:
 			String imageDiskPath = ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl());
 			Uri uri = Uri.parse("file://" + imageDiskPath);
@@ -333,11 +322,4 @@ public class LinkViewerActivity extends Activity implements ViewFactory {
 		}
 	}
 
-	@Override
-	public View makeView() {
-		ImageView i = new ImageView(this);  
-		i.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-		i.setAdjustViewBounds(true);
-		return i;
-	}
 }

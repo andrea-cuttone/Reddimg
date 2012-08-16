@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menuitem_upvote"
-          android:title="Upvote" 
-          android:icon="@drawable/upvote_bw" />
-    <item android:id="@+id/menuitem_downvote"
-          android:title="Downvote"
-          android:icon="@drawable/downvote_bw" />
     <item android:id="@+id/menuitem_openimg"
           android:title="Open" 
           android:icon="@android:drawable/ic_menu_gallery" />

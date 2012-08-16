@@ -24,6 +24,7 @@
         <activity android:name="net.acuttone.reddimg.prefs.UserSubredditsActivity" />
         <activity android:name="net.acuttone.reddimg.prefs.PopularSubredditsActivity" />
         <activity android:name="net.acuttone.reddimg.views.LinkViewerActivity" />
+        <activity android:name="net.acuttone.reddimg.views.FullImageActivity" />
     </application>
 
 </manifest>
