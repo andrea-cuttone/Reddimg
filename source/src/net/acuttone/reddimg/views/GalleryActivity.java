@@ -15,7 +15,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Bitmap;
-import android.graphics.Interpolator;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,7 +30,6 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
-import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -47,8 +45,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	private int current;
 	private int thumbSize;
 	private boolean doReload;
-	private List<LoadThumbTask> tasks;
-	private int pendingTasks;
+	private LoadThumbsTask loadThumbsTask;
 	private ImageAdapter imageAdapter;
 	private GridView gridView;
 	private Button btnLoadMore;
@@ -63,9 +60,6 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		
 		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		
-		tasks = new ArrayList<LoadThumbTask>();
-		pendingTasks = 0;
-		
 		current = savedInstanceState == null ? 0 : savedInstanceState.getInt(CURRENT);
 		
 		gridView = (GridView) findViewById(R.id.gridview_gallery);
@@ -73,9 +67,9 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-				Log.d(ReddimgApp.APP_NAME, "" + position);
+				int linkIndex = imageAdapter.getItem(position).getLinkIndex();
 				Intent i = new Intent(getApplicationContext(), LinkViewerActivity.class);
-				i.putExtra(LinkViewerActivity.LINK_INDEX, position);
+				i.putExtra(LinkViewerActivity.LINK_INDEX, linkIndex);
 				startActivity(i);
 			}
 		});
@@ -98,14 +92,11 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	private void loadMore() {
 		btnLoadMore.setText("Loading...");
 		btnLoadMore.setEnabled(false);
-		tasks = new ArrayList<LoadThumbTask>();
-		pendingTasks = 12;
-		for(int i = 0; i < pendingTasks; i++) {
-			LoadThumbTask t = new LoadThumbTask();
-			tasks.add(t);
-			t.execute(current);
-			current++;
+		if(loadThumbsTask != null) {
+			loadThumbsTask.cancel(true);
 		}
+		loadThumbsTask = new LoadThumbsTask();
+		loadThumbsTask.execute(current);
 	}
 	
 	@Override
@@ -123,39 +114,42 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		super.onSaveInstanceState(outState);
 	}
 	
-	private class LoadThumbTask extends AsyncTask<Integer, Void, GridItem> {
+	private class LoadThumbsTask extends AsyncTask<Integer, GridItem, Integer> {
 
 		@Override
-		protected GridItem doInBackground(Integer... arg0) {
+		protected Integer doInBackground(Integer... arg0) {
+			int index = arg0[0];
+			for (int i = 0; i < 12 && isCancelled() == false; i++) {
 				try {
 					RedditLink link = null;
-					while(link == null) {
-						link = ReddimgApp.instance().getLinksQueue().get(arg0[0]);
+					while (link == null) {
+						link = ReddimgApp.instance().getLinksQueue().get(index);
 					}
 					Bitmap thumb = ReddimgApp.instance().getImageCache().getImage(link.getThumbUrl());
 					Bitmap resized = resizeThumb(thumb);
-					if(resized != null) {
-						return new GridItem(link, resized);
-					} else {
-						return null;
+					if (resized != null) {
+						publishProgress(new GridItem(index, link, resized));
 					}
 				} catch (IOException e) {
-					
+					Log.e(ReddimgApp.APP_NAME, e.toString());
 				}
-				return null;
+				index++;
+			}
+			return index;
 		}
-		
+
 		@Override
-		protected void onPostExecute(GridItem result) {
+		protected void onProgressUpdate(GridItem... values) {
+			super.onProgressUpdate(values);
+			imageAdapter.addItem(values[0]);
+		}
+
+		@Override
+		protected void onPostExecute(Integer result) {
 			super.onPostExecute(result);
-			if(result != null) {
-				imageAdapter.addItem(result);
-			}
-			pendingTasks--;
-			if(pendingTasks == 0) {
-				btnLoadMore.setText("Load more");
-				btnLoadMore.setEnabled(true);
-			}
+			current = result;
+			btnLoadMore.setText("Load more");
+			btnLoadMore.setEnabled(true);
 		}
 		
 		private Bitmap resizeThumb(Bitmap thumbBmp) {
@@ -183,10 +177,26 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		
 		private RedditLink redditLink;
 		private Bitmap thumb;
+		private int linkIndex;
+		private boolean isNew;
 		
-		public GridItem(RedditLink link, Bitmap thumb) {
+		public GridItem(int linkIndex, RedditLink link, Bitmap thumb) {
+			this.linkIndex = linkIndex;
 			this.redditLink = link;
 			this.thumb = thumb;
+			this.isNew = true;
+		}
+		
+		public boolean isNew() {
+			return isNew;
+		}
+		
+		public void setNew(boolean isNew) {
+			this.isNew = isNew;
+		}
+		
+		public int getLinkIndex() {
+			return linkIndex;
 		}
 		
 		public RedditLink getRedditLink() {
@@ -196,7 +206,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		public Bitmap getThumb() {
 			return thumb;
 		}
-		
+
 	}
 	
 	private class ImageAdapter extends BaseAdapter {
@@ -218,9 +228,6 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			if(convertView != null) {
-				return convertView;
-			}
 			LayoutInflater li = getLayoutInflater();
 			View view = li.inflate(R.layout.grid_item, null);
 			ImageView iv = (ImageView) view.findViewById(R.id.grid_item_image);
@@ -230,28 +237,31 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			}
 			TextView tv = (TextView) view.findViewById(R.id.grid_item_text);
 			String title  = items.get(position).getRedditLink().getTitle();
-			if(title.length() > 40) {
-				title = title.substring(0, 40) + "...";
+			if(title.length() > 30) {
+				title = title.substring(0, 30) + "...";
 			}
 			tv.setText(title);
-			Animation tranAnim = new TranslateAnimation(0, 0f, 50f, 0f);
-			AlphaAnimation alphaAnim = new AlphaAnimation(0.5f, 1f);
-			AnimationSet as = new AnimationSet(true);
-			as.addAnimation(alphaAnim);
-			as.addAnimation(tranAnim);
-			as.setDuration(700);
-			view.startAnimation(as);
+			if(items.get(position).isNew()) {
+				Animation tranAnim = new TranslateAnimation(0, 0f, 50f, 0f);
+				AlphaAnimation alphaAnim = new AlphaAnimation(0.5f, 1f);
+				AnimationSet as = new AnimationSet(true);
+				as.addAnimation(alphaAnim);
+				as.addAnimation(tranAnim);
+				as.setDuration(700);
+				view.startAnimation(as);
+				items.get(position).setNew(false);
+			}
 			return view;
 		}
 
 		@Override
-		public Object getItem(int arg0) {
-			return null;
+		public GridItem getItem(int pos) {
+			return items.get(pos);
 		}
 
 		@Override
-		public long getItemId(int arg0) {
-			return 0;
+		public long getItemId(int pos) {
+			return items.get(pos).getLinkIndex();
 		}
 	}
 	
@@ -303,8 +313,8 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	protected void onDestroy() {
 		super.onDestroy();
 		ReddimgApp.instance().stopLinksQueueTimer();
-		for (LoadThumbTask t : tasks) {
-			t.cancel(true);
+		if(loadThumbsTask != null) {
+			loadThumbsTask.cancel(true);
 		}
 		ReddimgApp.instance().getPrefs().unregisterOnSharedPreferenceChangeListener(this);    
 	}
