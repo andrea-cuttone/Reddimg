@@ -195,7 +195,7 @@ public class RedditClient {
 				}
 				RedditLink newRedditLink = new RedditLink(lastT3, url, commentUrl, title, author, postedIn, score, voteStatus, thumbUrl);
 				newLinks.add(newRedditLink);
-				Log.d(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
+				Log.v(ReddimgApp.APP_NAME, " [" + lastT3 + "] " + title + " (" + url + ")");
 			}
 		} catch (IllegalStateException e) {
 			Log.e(ReddimgApp.APP_NAME, e.toString());
@@ -216,7 +216,7 @@ public class RedditClient {
 	}
 	
 	private boolean isUrlValid(String url) {
-		if(url.matches(".*(jpeg|jpg|png)$") == false) {
+		if(url.matches(".*(jpeg|jpg|png|gif)$") == false) {
 			return false;
 		}
 		return true;

@@ -39,17 +39,13 @@
             android:layout_gravity="top|right"
             android:src="@drawable/downvote" >
         </ImageView>
-
-        <TextView
-            android:id="@+id/textviewLoading"
+        
+        <ProgressBar
+            android:id="@+id/progressbar_linkviewer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginLeft="64dp"
-            android:layout_marginRight="64dp"
-            android:text=""
-            android:textAppearance="?android:attr/textAppearanceMedium" >
-        </TextView>
+            android:layout_gravity="center" 
+            android:visibility="invisible" />
     </FrameLayout>
 
 </LinearLayout>

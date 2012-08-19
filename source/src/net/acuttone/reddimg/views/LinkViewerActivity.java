@@ -45,6 +45,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewSwitcher.ViewFactory;
 
 public class LinkViewerActivity extends Activity {
@@ -57,14 +58,14 @@ public class LinkViewerActivity extends Activity {
 	private TextView textViewTitle;
 	private ImageView viewUpvote;
 	private ImageView viewDownvote;
-	private TextView textviewLoading;
-	private AsyncTask<Integer, RedditLink, Object[]> loadTask;
-	private AsyncTask<String, Bitmap, Void> loadGifTask;
+	private AsyncTask<Integer, Void, Object []> loadTask;
+	private AsyncTask<GifDecoder, Bitmap, Void> loadGifTask;
 	private TranslateAnimation animToLeft1;
 	private TranslateAnimation animToLeft2;
 	private TranslateAnimation animToRight1;
 	private TranslateAnimation animToRight2;
 	private GestureDetector gestureDetector;
+	private View progressBar;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -73,8 +74,7 @@ public class LinkViewerActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.linkviewer);
 		textViewTitle = (TextView) findViewById(R.id.textViewTitle);
-		textviewLoading = (TextView) findViewById(R.id.textviewLoading);
-		textviewLoading.setText("");
+		progressBar = findViewById(R.id.progressbar_linkviewer);
 		switcher = (ImageSwitcher) findViewById(R.id.image_switcher);
 		switcher.setFactory(new ViewFactory() {
 			
@@ -180,114 +180,100 @@ public class LinkViewerActivity extends Activity {
 	}
 	
 	private void loadImage() {
-		if(loadTask != null) {
+		if (loadTask != null) {
 			loadTask.cancel(true);
 		}
-		loadTask = new AsyncTask<Integer, RedditLink, Object[]>() {
+		loadTask = new AsyncTask<Integer, Void, Object[]>() {
 
 			@Override
 			protected void onPreExecute() {
 				super.onPreExecute();
-				textviewLoading.setText("Loading links...");
-				viewUpvote.setVisibility(View.GONE);
-				viewDownvote.setVisibility(View.GONE);
-				if(loadGifTask != null) {
+				if (loadGifTask != null) {
 					loadGifTask.cancel(true);
 				}
+				progressBar.setVisibility(View.VISIBLE);
 			}
 
 			@Override
 			protected Object[] doInBackground(Integer... params) {
 				RedditLink redditLink = null;
-				try {
-					redditLink = ReddimgApp.instance().getLinksQueue().get(params[0]);
-				} catch (IOException e) {
-					Log.e(ReddimgApp.APP_NAME, e.toString());
+				while (redditLink == null) {
+					try {
+						redditLink = ReddimgApp.instance().getLinksQueue().get(params[0]);
+					} catch (IOException e) {
+						Log.e(ReddimgApp.APP_NAME, e.toString());
+					}
 				}
-				if(redditLink != null) {
-					publishProgress(redditLink);
-					Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
-					Object [] result = new Object[2];
-					result[0] = bitmap;
-					result[1] = redditLink;
-					return result;
+				Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
+				if (isGif(redditLink)) {
+					InputStream stream;
+					GifDecoder dec = null;
+					try {
+						stream = new BufferedInputStream(new FileInputStream(ReddimgApp.instance().getImageCache()
+								.getImageDiskPath(redditLink.getUrl())));
+						dec = new GifDecoder();
+						dec.read(stream);
+					} catch (FileNotFoundException e) {
+						Log.e(ReddimgApp.APP_NAME, e.toString());
+					}
+					return new Object[] { redditLink, dec };
 				} else {
-					return null;
+					return new Object[] { redditLink, bitmap };
 				}
 			}
-			
-			@Override
-			protected void onProgressUpdate(RedditLink... values) {
-				super.onProgressUpdate(values);
-				RedditLink link = values[0];
-				updateTitle(link);
-				textviewLoading.setText("Loading " + link.getUrl());
+
+			private boolean isGif(RedditLink link) {
+				return link.getUrl().endsWith("gif");
 			}
 
 			@Override
 			protected void onPostExecute(Object[] result) {
 				super.onPostExecute(result);
-				final String errorMsg = "Error loading link (no connection?)";
-				if(result != null) {
-					currentLink = (RedditLink) ((Object []) result)[1];
-					if(currentLink.getUrl().endsWith("gif")) {
-						loadGifTask = new AsyncTask<String, Bitmap, Void>() {
-							
-							protected void onPreExecute() {
-								switcher.setInAnimation(null);
-								switcher.setOutAnimation(null);
-								refreshVoteIndicators(); 
-							}
+				currentLink = (RedditLink) result[0];
+				progressBar.setVisibility(View.INVISIBLE);
+				refreshVoteIndicators();
+				updateTitle();
+				if(result[1] == null) {
+					switcher.setImageDrawable(null);
+					Toast.makeText(getBaseContext(), "Error loading image", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				if (isGif(currentLink)) {
+					loadGifTask = new AsyncTask<GifDecoder, Bitmap, Void>() {
 
-							@Override
-							protected Void doInBackground(String... arg0) {
-								try {
-									InputStream stream = new BufferedInputStream(new FileInputStream(arg0[0]));
-									GifDecoder dec = new GifDecoder();
-							        dec.read(stream);
-							        final int n = dec.getFrameCount();
-							        int i = 0;
-							        while(isCancelled() == false) {
-								        Bitmap bmp = dec.getFrame(i);
-				                        int t = dec.getDelay(i);
-				                        publishProgress(bmp);
-				                        try {
-											Thread.sleep(t);
-										} catch (InterruptedException e) {
-										}
-				                        i++;
-				                        if(i == n) {
-				                        	i = 0;
-				                        }
-							        }
-								} catch (FileNotFoundException e) {
-									
-								}
-								return null;
-							}
-							
-							protected void onCancelled() {
-								switcher.setImageDrawable(null);
-							}
-							
-							protected void onProgressUpdate(Bitmap... values) {
-								switcher.setImageDrawable(new BitmapDrawable(values[0]));
-								textviewLoading.setText("");
-							}
-						};
-						loadGifTask.execute(ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl()));
-					} else {
-						Bitmap bitmap = (Bitmap) ((Object []) result)[0];
-						if(bitmap != null) {
-							textviewLoading.setText("");
-							switcher.setImageDrawable(new BitmapDrawable(bitmap));
-							refreshVoteIndicators(); 
-						} else {
-							textviewLoading.setText(errorMsg);
+						protected void onPreExecute() {
+							switcher.setInAnimation(null);
+							switcher.setOutAnimation(null);
 						}
-					}
+
+						@Override
+						protected Void doInBackground(GifDecoder... arg0) {
+							GifDecoder dec = arg0[0];
+							final int n = dec.getFrameCount();
+							int i = 0;
+							while (isCancelled() == false) {
+								Bitmap bmp = dec.getFrame(i);
+								int t = dec.getDelay(i);
+								publishProgress(bmp);
+								try {
+									Thread.sleep(t);
+								} catch (InterruptedException e) {
+								}
+								i++;
+								if (i == n) {
+									i = 0;
+								}
+							}
+							return null;
+						}
+
+						protected void onProgressUpdate(Bitmap... values) {
+							switcher.setImageDrawable(new BitmapDrawable(values[0]));
+						}
+					};
+					loadGifTask.execute((GifDecoder) result[1]);
 				} else {
-					textviewLoading.setText(errorMsg);
+					switcher.setImageDrawable(new BitmapDrawable((Bitmap) result[1]));
 				}
 			}
 		};
@@ -307,29 +293,29 @@ public class LinkViewerActivity extends Activity {
 		}
 	}
 
-	public void updateTitle(RedditLink link) {
+	public void updateTitle() {
 		SharedPreferences sp = ReddimgApp.instance().getPrefs();
 		int size = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "24"));
 		textViewTitle.setTextSize(size);
 		SpannableStringBuilder builder = new SpannableStringBuilder();
 		if (sp.getBoolean("showScore", false)) {
-			SpannableString score = new SpannableString("[" + link.getScore() + "] ");
+			SpannableString score = new SpannableString("[" + currentLink.getScore() + "] ");
 			score.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, score.length(), 0);
 			score.setSpan(new RelativeSizeSpan(0.8f), 0, score.length(), 0);
 			builder.append(score);
 		}
-		SpannableString title = new SpannableString(link.getTitle());
+		SpannableString title = new SpannableString(currentLink.getTitle());
 		title.setSpan(new ForegroundColorSpan(Color.WHITE), 0, title.length(), 0);
 		builder.append(title);
 		if (sp.getBoolean("showAuthor", false)) {
-			SpannableString author = new SpannableString(" by " + link.getAuthor());
+			SpannableString author = new SpannableString(" by " + currentLink.getAuthor());
 			author.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, author.length(), 0);
 			author.setSpan(new StyleSpan(Typeface.ITALIC), 0, author.length(), 0);
 			author.setSpan(new RelativeSizeSpan(0.8f), 0, author.length(), 0);
 			builder.append(author);
 		}
 		if (sp.getBoolean("showSubreddit", false)) {
-			SpannableString sub = new SpannableString(" in " + link.getSubreddit());
+			SpannableString sub = new SpannableString(" in " + currentLink.getSubreddit());
 			sub.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, sub.length(), 0);
 			sub.setSpan(new StyleSpan(Typeface.ITALIC), 0, sub.length(), 0);
 			sub.setSpan(new RelativeSizeSpan(0.8f), 0, sub.length(), 0);
