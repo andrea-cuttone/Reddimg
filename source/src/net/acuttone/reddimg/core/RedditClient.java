@@ -174,7 +174,11 @@ public class RedditClient {
 				lastT3 = (String) cData.get("id");
 				String url = (String) cData.get("url");
 				if(isUrlValid(url) == false) {
-					continue;
+					if(url.contains("imgur.com")) {
+						url = url + ".jpg";
+					} else {
+						continue;
+					}
 				}
 				String thumbUrl = (String) cData.get("thumbnail");
 				if(isUrlValid(thumbUrl) == false) {
