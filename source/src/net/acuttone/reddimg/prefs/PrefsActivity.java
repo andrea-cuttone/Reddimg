@@ -15,7 +15,7 @@ import android.view.WindowManager;
 
 public class PrefsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
-	public static final String DEFAULT_CACHE_SIZE = "10";
+	public static final String DEFAULT_CACHE_SIZE = "30";
 	public final static String CACHE_SIZE_KEY = "cache_size";
 	public static final String TITLE_SIZE_KEY = "titleSize";
     

@@ -56,7 +56,7 @@ public class ReddimgApp extends Application {
 						Log.e(ReddimgApp.APP_NAME, e.toString());
 					}
 				}
-			}, 0, 2000);
+			}, 0, 5000);
 		}
 	}
 	

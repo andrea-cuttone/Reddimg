@@ -175,7 +175,7 @@ public class RedditClient {
 				String url = (String) cData.get("url");
 				if(isUrlValid(url) == false) {
 					if(url.contains("imgur.com")) {
-						url = url + ".jpg";
+						url = url + ".png";
 					} else {
 						continue;
 					}

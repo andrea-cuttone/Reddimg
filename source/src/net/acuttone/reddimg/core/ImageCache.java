@@ -25,9 +25,9 @@ import android.util.Log;
 public class ImageCache {
 	private static final String NET_ACUTTONE_REDDIMG = "net.acuttone.reddimg";
 	
-	private static final long MIN_FREE_SPACE = 5 * ReddimgApp.MEGABYTE;
+	private static final long MIN_FREE_SPACE = 10 * ReddimgApp.MEGABYTE;
 	private static final String FILE_PREFIX = "__RDIMG_";
-	private static final int MAX_IMAGE_SIZE = 2 * ReddimgApp.MEGABYTE;
+	private static final int MAX_IMAGE_SIZE = 3 * ReddimgApp.MEGABYTE;
 	
 	private File reddimgDir;
 	private TreeSet<File> diskCacheFiles;

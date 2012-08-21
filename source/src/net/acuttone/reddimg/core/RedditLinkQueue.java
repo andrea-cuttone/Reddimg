@@ -43,8 +43,10 @@ public class RedditLinkQueue {
 		synchronized(lock) {
 			if(index >= links.size()) {
 				return null;
-			} else {
+			} else if(index >= 0) {
 				return links.get(index);
+			} else {
+				return null;
 			}
 		}
 	}	

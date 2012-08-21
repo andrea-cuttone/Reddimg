@@ -40,12 +40,34 @@
             android:src="@drawable/downvote" >
         </ImageView>
         
-        <ProgressBar
-            android:id="@+id/progressbar_linkviewer"
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center" 
-            android:visibility="invisible" />
+            android:layout_gravity="bottom|center"
+            android:orientation="horizontal" 
+            android:layout_margin="3dp" 
+            android:background="#66555555" >
+
+            <ProgressBar
+                android:id="@+id/progressbar_linkviewer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:visibility="invisible" 
+                android:layout_margin="3dp" />
+
+            <TextView
+                android:id="@+id/textViewLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textAppearance="?android:attr/textAppearanceSmall"
+      			android:textColor="#FFFFFF"
+      			android:layout_margin="3dp" >
+            </TextView>
+        </LinearLayout>
+
     </FrameLayout>
 
 </LinearLayout>

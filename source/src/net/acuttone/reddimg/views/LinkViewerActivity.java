@@ -58,7 +58,7 @@ public class LinkViewerActivity extends Activity {
 	private TextView textViewTitle;
 	private ImageView viewUpvote;
 	private ImageView viewDownvote;
-	private AsyncTask<Integer, Void, Object []> loadTask;
+	private AsyncTask<Integer, RedditLink, Object []> loadTask;
 	private AsyncTask<GifDecoder, Bitmap, Void> loadGifTask;
 	private TranslateAnimation animToLeft1;
 	private TranslateAnimation animToLeft2;
@@ -66,6 +66,7 @@ public class LinkViewerActivity extends Activity {
 	private TranslateAnimation animToRight2;
 	private GestureDetector gestureDetector;
 	private View progressBar;
+	private TextView textviewLoading;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -75,6 +76,7 @@ public class LinkViewerActivity extends Activity {
 		setContentView(R.layout.linkviewer);
 		textViewTitle = (TextView) findViewById(R.id.textViewTitle);
 		progressBar = findViewById(R.id.progressbar_linkviewer);
+		textviewLoading = (TextView) findViewById(R.id.textViewLoading);
 		switcher = (ImageSwitcher) findViewById(R.id.image_switcher);
 		switcher.setFactory(new ViewFactory() {
 			
@@ -122,15 +124,18 @@ public class LinkViewerActivity extends Activity {
 				float deltay = e1.getY() - e2.getY();
 				if (Math.abs(deltax) > 50) {
 					if (deltax < 0) {
-						currentLinkIndex--;
-						switcher.setInAnimation(animToRight2);
-						switcher.setOutAnimation(animToRight1);
+						if(currentLinkIndex > 0) {
+							currentLinkIndex--;
+							switcher.setInAnimation(animToRight2);
+							switcher.setOutAnimation(animToRight1);
+							loadImage();
+						}
 					} else {
 						currentLinkIndex++;
 						switcher.setInAnimation(animToLeft1);
 						switcher.setOutAnimation(animToLeft2);
+						loadImage();
 					}
-					loadImage();
 				} else {
 					if (Math.abs(deltay) > 50) {
 						if (deltay < 0) {
@@ -183,7 +188,7 @@ public class LinkViewerActivity extends Activity {
 		if (loadTask != null) {
 			loadTask.cancel(true);
 		}
-		loadTask = new AsyncTask<Integer, Void, Object[]>() {
+		loadTask = new AsyncTask<Integer, RedditLink, Object[]>() {
 
 			@Override
 			protected void onPreExecute() {
@@ -192,6 +197,8 @@ public class LinkViewerActivity extends Activity {
 					loadGifTask.cancel(true);
 				}
 				progressBar.setVisibility(View.VISIBLE);
+				textviewLoading.setText("Loading...");
+				textviewLoading.setVisibility(View.VISIBLE);
 			}
 
 			@Override
@@ -204,6 +211,7 @@ public class LinkViewerActivity extends Activity {
 						Log.e(ReddimgApp.APP_NAME, e.toString());
 					}
 				}
+				publishProgress(redditLink);
 				Bitmap bitmap = ReddimgApp.instance().getImageCache().getImage(redditLink.getUrl());
 				if (isGif(redditLink)) {
 					InputStream stream;
@@ -225,17 +233,25 @@ public class LinkViewerActivity extends Activity {
 			private boolean isGif(RedditLink link) {
 				return link.getUrl().endsWith("gif");
 			}
+			
+			@Override
+			protected void onProgressUpdate(RedditLink... values) {
+				super.onProgressUpdate(values);
+				textviewLoading.setText("Loading " + values[0].getUrl());
+			}
 
 			@Override
 			protected void onPostExecute(Object[] result) {
 				super.onPostExecute(result);
 				currentLink = (RedditLink) result[0];
-				progressBar.setVisibility(View.INVISIBLE);
+				progressBar.setVisibility(View.GONE);
+				textviewLoading.setVisibility(View.GONE);
 				refreshVoteIndicators();
 				updateTitle();
 				if(result[1] == null) {
 					switcher.setImageDrawable(null);
-					Toast.makeText(getBaseContext(), "Error loading image", Toast.LENGTH_SHORT).show();
+					textviewLoading.setVisibility(View.VISIBLE);
+					textviewLoading.setText("Error loading " + currentLink.getUrl());
 					return;
 				}
 				if (isGif(currentLink)) {
