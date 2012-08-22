@@ -15,6 +15,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -72,7 +73,9 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			}
 		});
 		
-		thumbSize = ReddimgApp.instance().getScreenW() / 3;
+		int cols = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 5 : 3; 
+		thumbSize = ReddimgApp.instance().getScreenW() / cols;
+		gridView.setNumColumns(cols);
 		imageAdapter = new ImageAdapter(getBaseContext());
 		gridView.setAdapter(imageAdapter);		
 		btnLoadMore = (Button) findViewById(R.id.gridview_loadmore);
@@ -136,7 +139,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		@Override
 		protected Integer doInBackground(Integer... arg0) {
 			int index = arg0[0];
-			for (int i = 0; i < 12 && isCancelled() == false; i++) {
+			for (int i = 0; i < 15 && isCancelled() == false; i++) {
 				try {
 					RedditLink link = null;
 					while (link == null) {
