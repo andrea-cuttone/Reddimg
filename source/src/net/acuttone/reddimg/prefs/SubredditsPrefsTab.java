@@ -1,13 +1,7 @@
 package net.acuttone.reddimg.prefs;
-import java.util.List;
-
 import net.acuttone.reddimg.R;
 import net.acuttone.reddimg.core.ReddimgApp;
-import net.acuttone.reddimg.views.GalleryActivity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.app.TabActivity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Window;

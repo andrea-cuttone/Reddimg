@@ -11,10 +11,7 @@
         <item>28</item>
     </string-array>
     <string-array name="default_subreddits">
-        <item>funny</item>
-        <item>pics</item>
         <item>aww</item>
-        <item>AdviceAnimals</item>
     </string-array>
     <string-array name="popular_subreddits">
         <item>gif</item>

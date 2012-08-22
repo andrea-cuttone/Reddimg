@@ -39,7 +39,6 @@ public class RedditLinkQueue {
 	}
 
 	public RedditLink get(int index) throws IOException {
-		//return new RedditLink("0", "image", "comment.url", "a very stupidly long title", "author", "subreddit", 666, true, "thumb");
 		synchronized(lock) {
 			if(index >= links.size()) {
 				return null;

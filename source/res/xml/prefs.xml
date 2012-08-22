@@ -8,15 +8,15 @@
 	<PreferenceCategory android:title="Title format">
 		 <CheckBoxPreference
                         android:title="Show score"
-                        android:defaultValue="false"
+                        android:defaultValue="true"
                         android:key="showScore" />
          <CheckBoxPreference
                         android:title="Show author"
-                        android:defaultValue="false"
+                        android:defaultValue="true"
                         android:key="showAuthor" />
          <CheckBoxPreference
                         android:title="Show subreddit"
-                        android:defaultValue="false"
+                        android:defaultValue="true"
                         android:key="showSubreddit" />
          <ListPreference 
 			android:entries="@array/titleSizeKeys"

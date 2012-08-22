@@ -45,7 +45,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ViewSwitcher.ViewFactory;
 
 public class LinkViewerActivity extends Activity {
@@ -317,7 +316,7 @@ public class LinkViewerActivity extends Activity {
 		int size = Integer.parseInt(sp.getString(PrefsActivity.TITLE_SIZE_KEY, "24"));
 		textViewTitle.setTextSize(size);
 		SpannableStringBuilder builder = new SpannableStringBuilder();
-		if (sp.getBoolean("showScore", false)) {
+		if (sp.getBoolean("showScore", true)) {
 			SpannableString score = new SpannableString("[" + currentLink.getScore() + "] ");
 			score.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, score.length(), 0);
 			score.setSpan(new RelativeSizeSpan(0.8f), 0, score.length(), 0);
@@ -326,14 +325,14 @@ public class LinkViewerActivity extends Activity {
 		SpannableString title = new SpannableString(currentLink.getTitle());
 		title.setSpan(new ForegroundColorSpan(Color.WHITE), 0, title.length(), 0);
 		builder.append(title);
-		if (sp.getBoolean("showAuthor", false)) {
+		if (sp.getBoolean("showAuthor", true)) {
 			SpannableString author = new SpannableString(" by " + currentLink.getAuthor());
 			author.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, author.length(), 0);
 			author.setSpan(new StyleSpan(Typeface.ITALIC), 0, author.length(), 0);
 			author.setSpan(new RelativeSizeSpan(0.8f), 0, author.length(), 0);
 			builder.append(author);
 		}
-		if (sp.getBoolean("showSubreddit", false)) {
+		if (sp.getBoolean("showSubreddit", true)) {
 			SpannableString sub = new SpannableString(" in " + currentLink.getSubreddit());
 			sub.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, sub.length(), 0);
 			sub.setSpan(new StyleSpan(Typeface.ITALIC), 0, sub.length(), 0);
