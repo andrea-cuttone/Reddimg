@@ -94,7 +94,7 @@ public class UserSubredditsActivity extends Activity {
 			}
 			
 		};
-		loadTask.execute(null);
+		loadTask.execute((Void [])null);
 	}
 
 }

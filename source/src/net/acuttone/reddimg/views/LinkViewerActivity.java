@@ -354,7 +354,6 @@ public class LinkViewerActivity extends Activity {
 		Intent intent = null;
 		switch (item.getItemId()) {
 		case R.id.menuitem_share:
-			String imageDiskPath = ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl());
 			intent = new Intent();
 			intent.setAction(Intent.ACTION_SEND);
 			intent.setType("text/plain");

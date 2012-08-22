@@ -94,7 +94,6 @@ public class ImageCache {
 			    int largerDim = Math.max(options.outWidth, options.outHeight);
 			    final float MAX_SIZE = 1024.0f;
 			    int scaleFactor = largerDim > MAX_SIZE ? (int) Math.ceil(largerDim / MAX_SIZE) : 1;
-			    Log.d(ReddimgApp.APP_NAME, "" + scaleFactor);
 			    options = new BitmapFactory.Options();
 				// try scaling more if OutOfMemoryError
 			    while(result == null && scaleFactor <= 16) {

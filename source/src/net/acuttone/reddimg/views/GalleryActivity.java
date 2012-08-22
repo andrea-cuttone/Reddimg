@@ -164,13 +164,13 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		@Override
 		protected void onProgressUpdate(GridItem... values) {
 			super.onProgressUpdate(values);
+			current = values[0].getLinkIndex() + 1;
 			imageAdapter.addItem(values[0]);
 		}
 
 		@Override
 		protected void onPostExecute(Integer result) {
 			super.onPostExecute(result);
-			current = result;
 			btnLoadMore.setText("Load more");
 			btnLoadMore.setEnabled(true);
 		}
