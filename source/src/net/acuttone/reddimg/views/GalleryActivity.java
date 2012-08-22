@@ -55,10 +55,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
 		setContentView(R.layout.gallery);
-		
-		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		
 		current = savedInstanceState == null ? 0 : savedInstanceState.getInt(CURRENT);
 		
@@ -85,7 +82,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 				loadMore();
 			}
 		});
-		ReddimgApp.instance().startLinksQueueTimer();
+		ReddimgApp.instance().getPrefs().registerOnSharedPreferenceChangeListener(this);
 		loadMore();
 	}
 
@@ -100,12 +97,31 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	}
 	
 	@Override
+	protected void onPause() {
+		super.onPause();
+		ReddimgApp.instance().stopLinksQueueTimer();
+		if(loadThumbsTask != null) {
+			loadThumbsTask.cancel(true);
+			loadThumbsTask = null;
+		}
+	}
+	
+	@Override
 	protected void onResume() {
 		super.onResume();
+		ReddimgApp.instance().startLinksQueueTimer();
 		if(doReload) {
+			current = 0;
+			imageAdapter.clearItems();
 			loadMore();
 			doReload = false;
 		}
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		ReddimgApp.instance().getPrefs().unregisterOnSharedPreferenceChangeListener(this);
 	}
 	
 	@Override
@@ -124,6 +140,9 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 					RedditLink link = null;
 					while (link == null) {
 						link = ReddimgApp.instance().getLinksQueue().get(index);
+						if(link == null) {
+							try { Thread.sleep(200); } catch (InterruptedException e) { }
+						}								
 					}
 					Bitmap thumb = ReddimgApp.instance().getImageCache().getImage(link.getThumbUrl());
 					Bitmap resized = resizeThumb(thumb);
@@ -148,6 +167,13 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		protected void onPostExecute(Integer result) {
 			super.onPostExecute(result);
 			current = result;
+			btnLoadMore.setText("Load more");
+			btnLoadMore.setEnabled(true);
+		}
+		
+		@Override
+		protected void onCancelled() {
+			super.onCancelled();
 			btnLoadMore.setText("Load more");
 			btnLoadMore.setEnabled(true);
 		}
@@ -214,6 +240,11 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 
 		public ImageAdapter(Context context) {
 			this.items = new ArrayList<GalleryActivity.GridItem>();
+		}
+
+		public void clearItems() {
+			items.clear();
+			notifyDataSetChanged();
 		}
 
 		public void addItem(GridItem itm) {
@@ -290,6 +321,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 		case R.id.menuitem_firstpage:
 			current = 0;
 			ReddimgApp.instance().getLinksQueue().initSubreddits();
+			imageAdapter.clearItems();
 			loadMore();
 			return true;
 		case R.id.menuitem_login:
@@ -310,19 +342,8 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	}
 	
 	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		ReddimgApp.instance().stopLinksQueueTimer();
-		if(loadThumbsTask != null) {
-			loadThumbsTask.cancel(true);
-		}
-		ReddimgApp.instance().getPrefs().unregisterOnSharedPreferenceChangeListener(this);    
-	}
-	
-	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (SubredditsPickerActivity.SUBREDDITS_LIST_KEY.equals(key)) {
-			current = 0;
 			doReload = true;
 		}
 	}

@@ -27,7 +27,6 @@ import android.widget.Toast;
 public class SubredditsPickerActivity extends Activity {
 	protected static final int DELETE_CONFIRMATION_DLG = 0;
 	private static final String STRING_SEPARATOR = ";";
-	private static final String SUBREDDIT_PREFIX = "r/";
 	public static final String SUBREDDITS_LIST_KEY = "SUBREDDIT_LIST";
 
 	private EditText editText;
@@ -54,13 +53,12 @@ public class SubredditsPickerActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				String text = editText.getText().toString();
+				String text = editText.getText().toString().trim();
 				if (text.matches("[a-zA-Z]+")) {
 					arrayAdapter.add(text);
 				} else {
 					Toast.makeText(getBaseContext(), "Invalid name!", Toast.LENGTH_SHORT).show();
 				}
-				editText.getText().clear();
 			}
 		});
 
