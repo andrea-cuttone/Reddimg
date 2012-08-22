@@ -354,17 +354,20 @@ public class LinkViewerActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent = null;
 		switch (item.getItemId()) {
-		case R.id.menuitem_openimg:
+		case R.id.menuitem_share:
 			String imageDiskPath = ReddimgApp.instance().getImageCache().getImageDiskPath(currentLink.getUrl());
-			Uri uri = Uri.parse("file://" + imageDiskPath);
 			intent = new Intent();
-			intent.setAction(Intent.ACTION_VIEW);
-			intent.setDataAndType(uri, "image/*");
-			startActivity(intent);
+			intent.setAction(Intent.ACTION_SEND);
+			intent.setType("text/plain");
+			intent.putExtra(Intent.EXTRA_TEXT, currentLink.getUrl());
+			startActivity(Intent.createChooser(intent, "Share via"));
 			return true;
 		case R.id.menuitem_opencomments:
 			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentLink.getCommentUrl() + ".compact"));
 			startActivity(intent);
+			return true;
+		case R.id.menuitem_tutorial:
+			showTutorial();
 			return true;
 		default:
 			return super.onContextItemSelected(item);

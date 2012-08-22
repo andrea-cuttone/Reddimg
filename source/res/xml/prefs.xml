@@ -1,10 +1,5 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">	
 	<PreferenceCategory android:title="Content">
-		<PreferenceScreen android:title="Edit subreddits list">
-			<intent android:action="android.intent.action.MAIN"
-				android:targetPackage="net.acuttone.reddimg" 
-				android:targetClass="net.acuttone.reddimg.prefs.SubredditsPrefsTab" />
-		</PreferenceScreen>
 		<CheckBoxPreference
                         android:title="Show NSFW"
                         android:defaultValue="false"

@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menuitem_openimg"
-          android:title="Open" 
-          android:icon="@android:drawable/ic_menu_gallery" />
     <item android:id="@+id/menuitem_opencomments"
           android:title="Show comments"
           android:icon="@drawable/ic_menu_start_conversation" />	    
+    <item android:id="@+id/menuitem_share"
+          android:title="Share" 
+          android:icon="@drawable/ic_menu_share" />
+    <item android:id="@+id/menuitem_tutorial"
+          android:title="Tutorial" 
+          android:icon="@drawable/ic_menu_help" />
 </menu>

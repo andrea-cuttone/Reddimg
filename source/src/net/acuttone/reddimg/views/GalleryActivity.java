@@ -9,6 +9,7 @@ import net.acuttone.reddimg.core.ReddimgApp;
 import net.acuttone.reddimg.core.RedditLink;
 import net.acuttone.reddimg.prefs.PrefsActivity;
 import net.acuttone.reddimg.prefs.SubredditsPickerActivity;
+import net.acuttone.reddimg.prefs.SubredditsPrefsTab;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -318,17 +319,21 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent = null;
 		switch (item.getItemId()) {
-		case R.id.menuitem_firstpage:
+		case R.id.menuitem_reload:
 			current = 0;
 			ReddimgApp.instance().getLinksQueue().initSubreddits();
 			imageAdapter.clearItems();
 			loadMore();
 			return true;
+		case R.id.menuitem_subreddits:
+			intent = new Intent(getBaseContext(), SubredditsPrefsTab.class);
+			startActivity(intent);
+			return true;
 		case R.id.menuitem_login:
 			if (ReddimgApp.instance().getRedditClient().isLoggedIn()) {
 				ReddimgApp.instance().getRedditClient().doLogout();
 			} else {
-				intent = new Intent(this, LoginActivity.class);
+				intent = new Intent(getBaseContext(), LoginActivity.class);
 				startActivity(intent);
 			}
 			return true;
