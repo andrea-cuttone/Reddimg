@@ -208,7 +208,7 @@ public class LinkViewerActivity extends Activity {
 					try {
 						redditLink = ReddimgApp.instance().getLinksQueue().get(params[0]);
 						if(redditLink == null) {
-							try { Thread.sleep(200); } catch (InterruptedException e) { }
+							try { Thread.sleep(300); } catch (InterruptedException e) { }
 						}
 					} catch (IOException e) {
 						Log.e(ReddimgApp.APP_NAME, e.toString());

@@ -85,17 +85,29 @@ public class ImageCache {
 		File img = new File(getImageDiskPath(url));
 		if (img.exists()) {
 			try {
+				// start scaling the image so that it fits 1024x1024
 				FileInputStream is = new FileInputStream(img);
-				// TODO: add downsampling for large imgs
-				try {
-					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inSampleSize = 1;
-					result = BitmapFactory.decodeStream(is, null, options);
-				} catch(OutOfMemoryError err) {
-					Log.w(ReddimgApp.APP_NAME, "ERROR WHILE DECODING " + url + " " + img.length() + " : " + err.toString());
-				}
-				
-				is.close();
+				BitmapFactory.Options options = new BitmapFactory.Options();
+				options.inJustDecodeBounds = true;
+			    BitmapFactory.decodeStream(is, null, options);
+			    is.close();
+			    int largerDim = Math.max(options.outWidth, options.outHeight);
+			    final float MAX_SIZE = 1024.0f;
+			    int scaleFactor = largerDim > MAX_SIZE ? (int) Math.ceil(largerDim / MAX_SIZE) : 1;
+			    Log.d(ReddimgApp.APP_NAME, "" + scaleFactor);
+			    options = new BitmapFactory.Options();
+				// try scaling more if OutOfMemoryError
+			    while(result == null && scaleFactor <= 16) {
+			    	is = new FileInputStream(img);
+			    	try {
+			    		options.inSampleSize = scaleFactor;
+			    		result = BitmapFactory.decodeStream(is, null, options);
+			    	} catch(OutOfMemoryError err) {
+			    		Log.w(ReddimgApp.APP_NAME, "ERROR WHILE DECODING " + url + " WITH SCALE " + scaleFactor + ": " + err.toString());
+			    	}
+			    	is.close();
+			    	scaleFactor++;
+			    }
 			} catch (FileNotFoundException e) {
 				Log.e(ReddimgApp.APP_NAME, e.toString());
 			} catch (IOException e) {

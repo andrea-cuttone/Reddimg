@@ -145,7 +145,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 					while (link == null) {
 						link = ReddimgApp.instance().getLinksQueue().get(index);
 						if(link == null) {
-							try { Thread.sleep(200); } catch (InterruptedException e) { }
+							try { Thread.sleep(300); } catch (InterruptedException e) { }
 						}								
 					}
 					Bitmap thumb = ReddimgApp.instance().getImageCache().getImage(link.getThumbUrl());
