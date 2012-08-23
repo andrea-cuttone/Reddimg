@@ -174,7 +174,11 @@ public class RedditClient {
 				}
 				String thumbUrl = (String) cData.get("thumbnail");
 				if(isUrlValid(thumbUrl) == false) {
-					continue;
+					if(url.contains("imgur.com")) {
+						thumbUrl = url.substring(0, url.length() - 4) + "s" + url.substring(url.length() - 4);
+					} else {
+						continue;
+					}
 				}
 				boolean isNSFW = cData.getBoolean("over_18");
 				if (isNSFW && showNSFW == false) {
