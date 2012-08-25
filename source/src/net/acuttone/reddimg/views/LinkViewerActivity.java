@@ -45,11 +45,12 @@ import android.widget.FrameLayout;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewSwitcher.ViewFactory;
 
 public class LinkViewerActivity extends Activity {
 
-	private static final String TUTORIAL_SHOWN = "TUTORIAL_SHOWN";
+	private static final String LINKVIEWER_TUTORIAL_SHOWN = "LINKVIEWER_TUTORIAL_SHOWN";
 	public static final String LINK_INDEX = "LINK_INDEX";
 	private int currentLinkIndex;
 	private RedditLink currentLink;
@@ -137,12 +138,16 @@ public class LinkViewerActivity extends Activity {
 					}
 				} else {
 					if (Math.abs(deltay) > 50) {
-						if (deltay < 0) {
-							ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
+						if(ReddimgApp.instance().getRedditClient().isLoggedIn() == false) {
+							Toast.makeText(getBaseContext(), "Please login to vote", Toast.LENGTH_SHORT).show();
 						} else {
-							ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
+							if (deltay < 0) {
+								ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.DOWNVOTE);
+							} else {
+								ReddimgApp.instance().getRedditClient().vote(currentLink, RedditClient.UPVOTE);
+							}
+							refreshVoteIndicators();
 						}
-						refreshVoteIndicators();
 					}
 				}
 				return super.onFling(e1, e2, velocityX, velocityY);
@@ -151,7 +156,7 @@ public class LinkViewerActivity extends Activity {
 		
 		loadImage();
 		
-		if(ReddimgApp.instance().getPrefs().getBoolean(TUTORIAL_SHOWN, false) == false) {
+		if(ReddimgApp.instance().getPrefs().getBoolean(LINKVIEWER_TUTORIAL_SHOWN, false) == false) {
 			showTutorial();
 		}
 	}
@@ -163,7 +168,7 @@ public class LinkViewerActivity extends Activity {
 				.setCancelable(false).setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 						Editor editor = ReddimgApp.instance().getPrefs().edit();
-						editor.putBoolean(TUTORIAL_SHOWN, true);
+						editor.putBoolean(LINKVIEWER_TUTORIAL_SHOWN, true);
 						editor.commit();
 						dialog.dismiss();
 					}

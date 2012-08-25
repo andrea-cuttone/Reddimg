@@ -40,6 +40,7 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class GalleryActivity extends Activity implements OnSharedPreferenceChangeListener {
 	private static final String CURRENT = "CURRENT";
@@ -173,6 +174,7 @@ public class GalleryActivity extends Activity implements OnSharedPreferenceChang
 			super.onPostExecute(result);
 			btnLoadMore.setText("Load more");
 			btnLoadMore.setEnabled(true);
+			Toast.makeText(getBaseContext(), "Scroll down for more", Toast.LENGTH_SHORT).show();
 		}
 		
 		@Override

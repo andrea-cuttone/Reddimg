@@ -14,25 +14,27 @@
         <item>aww</item>
     </string-array>
     <string-array name="popular_subreddits">
-        <item>gif</item>
-        <item>gifs</item>
-        <item>comics</item>
-        <item>f7u12</item>
-        <item>screenshots</item>
-        <item>AdviceAnimals</item>
-        <item>desktops</item>
-        <item>Demotivational</item>
+        <item>aww</item>
+        <item>pics</item>
+        <item>funny</item>
+        <item>images</item>
+        <item>photography</item>
         <item>wallpaper</item>
         <item>wallpapers</item>
-        <item>aww</item>
-        <item>funny</item>
-        <item>pics</item>
-        <item>photography</item>
-        <item>images</item>
+		<item>thesimpsons</item>
+		<item>futurama</item>
+        <item>lolcats</item>
+        <item>comics</item>
+        <item>f7u12</item>
+        <item>AdviceAnimals</item>
+        <item>Demotivational</item>
+        <item>facepalm</item>
+        <item>screenshots</item>
+        <item>desktops</item>
         <item>gaming</item>
         <item>WTF</item>
-        <item>lolcats</item>
         <item>reactiongifs</item>
-        <item>facepalm</item>
+        <item>gif</item>
+        <item>gifs</item>
     </string-array>
 </resources>
